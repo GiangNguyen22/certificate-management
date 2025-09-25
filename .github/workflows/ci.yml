@@ -35,5 +35,5 @@ jobs:
           cache: maven
 
       # 3. Build & Test với Maven
-      - name: Build with Maven
-        run: mvn -B package --file pom.xml
+      - name: Build with Maven (UTF-8)
+        run: mvn -B package --file pom.xml -Dproject.build.sourceEncoding=UTF-8
