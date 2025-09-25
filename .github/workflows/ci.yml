@@ -34,6 +34,6 @@ jobs:
           distribution: 'oracle'
           cache: maven
 
-      # 3. Build & Test với Maven
+      # 3. Build & Test voi Maven
       - name: Build with Maven (UTF-8)
         run: mvn -B package --file pom.xml -Dproject.build.sourceEncoding=UTF-8
