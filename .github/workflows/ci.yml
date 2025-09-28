@@ -2,7 +2,7 @@ name: Java CI with Oracle JDK & MongoDB
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "doan-code" ]
   pull_request:
 
 jobs:
