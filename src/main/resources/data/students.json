@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1",
+    "name": "Nguyen Van A",
+    "dob": "2000-05-12",
+    "studentCode": "SV001",
+    "majorName": "Công nghệ thông tin",
+    "year": "2024"
+  },
+  {
+    "id": "2",
+    "name": "Tran Thi B",
+    "dob": "2001-08-20",
+    "studentCode": "SV002",
+    "majorName": "Kinh tế",
+    "year": "2023"
+  }
+]

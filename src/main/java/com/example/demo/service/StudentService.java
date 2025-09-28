@@ -30,5 +30,8 @@ public class StudentService{
     public Optional<Student> getStudent(String id){
         return studentRepository.findById(id);
     }
+    // public Optional<Student> getStudentbyStudentCode(String studentCode){
+    //     return studentRepository.findByStudentCode(studentCode);
+    // }
 
 }

@@ -2,6 +2,8 @@ package com.example.demo;
 
 import com.example.demo.entity.Student;
 import com.example.demo.service.StudentService;
+import com.example.demo.service.fillCertificate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,9 +24,18 @@ public class CertificateManagementApplication {
 		StudentService studentService = context.getBean(StudentService.class);
 
 		// Gọi phương thức
-//		studentService.createStudent();
+		//studentService.createStudent();
 //		Optional<Student> s = studentService.getStudent("68d55b6ae404c5e89c6851de");
 //		System.out.println(s.toString());
+
+		fillCertificate fillCert = context.getBean(fillCertificate.class);
+		try {
+			String filePath = fillCert.generateCertificate("11111111");
+			System.out.println("Certificate generated at: " + filePath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 }
