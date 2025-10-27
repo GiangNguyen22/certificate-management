@@ -2,23 +2,23 @@ package com.example.demo.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Builder
 @Entity
-@Table(name = "user_public_keys")
-public class UserPublicKeys {
-
+@Table(name = "request_flow")
+public class RequestFlow {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String user_id;
-    private String public_key;
-    private String created_at;
+    private int id;
+    private String action;
+    private String comment;
+    private LocalDateTime createdAt;
 }
-

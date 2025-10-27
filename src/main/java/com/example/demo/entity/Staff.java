@@ -1,24 +1,20 @@
 package com.example.demo.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Document(collection = "staff")
-public class Staff {
-    @Id
-    private String id;
+@Entity
+
+public class Staff extends User {
+
     private String name;
+    @Column(name="staff_code")
     private String staffCode;
-    private Role role;
-
-
 }
 

@@ -1,0 +1,46 @@
+package com.example.demo.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+@MappedSuperclass
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Builder
+
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String username;
+    private String password;
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
+    private String email;
+    private String phone;
+    private LocalDate dob;
+    private boolean status;
+    @Column(name="department_id")
+    private int departmentId;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name="role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
+
+
+    public User(UUID id, String username, String password, String fullName, String email, String phone, boolean status, int departmentId, Set<Role> roles) {
+    }
+}

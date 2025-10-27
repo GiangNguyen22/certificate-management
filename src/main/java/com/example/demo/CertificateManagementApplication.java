@@ -4,6 +4,7 @@ import com.example.demo.entity.Student;
 import com.example.demo.service.StudentService;
 import com.example.demo.service.fillCertificate;
 
+import com.example.demo.utils.KeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,27 +15,30 @@ import java.util.Optional;
 @SpringBootApplication
 public class CertificateManagementApplication {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 
-//		SpringApplication.run(CertificateManagementApplication.class, args);
+		SpringApplication.run(CertificateManagementApplication.class, args);
 
-		ApplicationContext context = SpringApplication.run(CertificateManagementApplication.class, args);
-
-		// Lấy bean StudentService đã được Spring quản lý
-		StudentService studentService = context.getBean(StudentService.class);
+//		ApplicationContext context = SpringApplication.run(CertificateManagementApplication.class, args);
+//
+//		// Lấy bean StudentService đã được Spring quản lý
+//		StudentService studentService = context.getBean(StudentService.class);
 
 		// Gọi phương thức
 		//studentService.createStudent();
 //		Optional<Student> s = studentService.getStudent("68d55b6ae404c5e89c6851de");
 //		System.out.println(s.toString());
 
-		fillCertificate fillCert = context.getBean(fillCertificate.class);
-		try {
-			String filePath = fillCert.generateCertificate("11111111");
-			System.out.println("Certificate generated at: " + filePath);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		fillCertificate fillCert = context.getBean(fillCertificate.class);
+//		try {
+//			String filePath = fillCert.generateCertificate("11111111");
+//			System.out.println("Certificate generated at: " + filePath);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+
+//		System.out.println(KeyUtil.generatePKCS12Base64("student-1", "123456".toCharArray() ));
+
 		
 	}
 

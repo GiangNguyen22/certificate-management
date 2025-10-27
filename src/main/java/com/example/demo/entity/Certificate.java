@@ -1,19 +1,25 @@
 package com.example.demo.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Document(collection = "certificate")
+@Builder
+@Entity
+
 public class Certificate {
+
+    @jakarta.persistence.Id
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
     private String certId;
     private String templateId;
@@ -23,8 +29,9 @@ public class Certificate {
     private String status;
     private String serial_no;   // vd: 2025_IT_01234
     private String certificate; // Base64
+    private String alias; //ten dinh danh cho certificate, mac dinh cho la studentCode di
+    private String password; // password for certificate bao ve keystore pkcs12 va private key
     private String pdf_uri;
     private String pdf_sha256;
-
 
 }
