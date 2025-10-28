@@ -34,3 +34,4 @@ public class Certificate {
     private String pdf_sha256;
 
 }
+
