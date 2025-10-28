@@ -14,7 +14,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
 @Entity
 
 public class Student extends User {
@@ -29,7 +28,7 @@ public class Student extends User {
     private String startYear;
     private String status;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "user")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
     private List<StudentRequest> requests;
 
     public Student(UUID id, String username, String password, String fullName, String email, String phone, boolean status, int departmentId, Set<Role> roles, String studentCode, String majorName, String className, String startYear, String status1) {

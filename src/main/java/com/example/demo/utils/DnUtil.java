@@ -16,7 +16,7 @@ public class DnUtil {
         // EMAILADDRESS => Email sinh viên
         String dn = String.format(
                 "CN=%s, OU=%s, ST=%s, C=%s, EMAILADDRESS=%s, UID=%s",
-                student.getName(),
+                student.getFullName(),
                 student.getMajorName(),
                 "Ha Noi",
                 "Viet Nam",

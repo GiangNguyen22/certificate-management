@@ -74,7 +74,7 @@ public class fillCertificate {
                         // Name
                         cs.beginText();
                         cs.newLineAtOffset(330, 300);
-                        cs.showText(student.getName());
+                        cs.showText(student.getFullName());
                         cs.endText();
 
                         // Date of Birth
@@ -98,7 +98,7 @@ public class fillCertificate {
                         // Graduation Year
                         cs.beginText();
                         cs.newLineAtOffset(330, 250);
-                        cs.showText(student.getYear());
+                        cs.showText(student.getStartYear());
                         cs.endText();
 
                         // Classification
