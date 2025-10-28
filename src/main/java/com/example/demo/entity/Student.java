@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 
 @AllArgsConstructor
@@ -27,17 +26,16 @@ public class Student extends User {
     private String className;
     @Column(name="start_year")
     private String startYear;
-    private String status;
+    @Column(name="gpa")
+    private Double gpa;
+    @Column(name="passed_English")
+    private boolean passedEnglish;
+    @Column(name="status_sv")
+    private String statusSV;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "user")
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
     private List<StudentRequest> requests;
 
-    public Student(UUID id, String username, String password, String fullName, String email, String phone, boolean status, int departmentId, Set<Role> roles, String studentCode, String majorName, String className, String startYear, String status1) {
-        super(id, username, password, fullName, email, phone, status, departmentId, roles);
-        this.studentCode = studentCode;
-        this.majorName = majorName;
-        this.className = className;
-        this.startYear = startYear;
-        this.status = status1;
-    }
+    // Use Lombok-generated constructors; removed manual constructor that used UUID
 }

@@ -2,20 +2,17 @@ package com.example.demo.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 @MappedSuperclass
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
 
 public class User {
     @Id
@@ -35,12 +32,11 @@ public class User {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name="role_id")
+        joinColumns = @JoinColumn(name = "user_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT)),
+        inverseJoinColumns = @JoinColumn(name="role_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     )
     private Set<Role> roles = new HashSet<>();
 
 
-    public User(UUID id, String username, String password, String fullName, String email, String phone, boolean status, int departmentId, Set<Role> roles) {
-    }
+    // Custom constructor removed — rely on Lombok-generated constructors
 }

@@ -28,7 +28,7 @@ public class StudentService{
         studentRepository.save(student);
     }
 
-    public Optional<Student> getStudent(String id){
+    public Optional<Student> getStudent(Long id){
         return studentRepository.findById(id);
     }
     // public Optional<Student> getStudentbyStudentCode(String studentCode){

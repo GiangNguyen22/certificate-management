@@ -34,7 +34,7 @@ public class fillCertificate {
         Student student = studentOpt.get();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String dobFormatted = student.getDob().format(formatter);
+    String dobFormatted = student.getDob().format(formatter);
         String issuedDate = LocalDate.now().format(formatter);
 
         File outDir = new File("certificates");
@@ -74,7 +74,7 @@ public class fillCertificate {
                         // Name
                         cs.beginText();
                         cs.newLineAtOffset(330, 300);
-                        cs.showText(student.getName());
+                        cs.showText(student.getFullName());
                         cs.endText();
 
                         // Date of Birth
@@ -98,7 +98,7 @@ public class fillCertificate {
                         // Graduation Year
                         cs.beginText();
                         cs.newLineAtOffset(330, 250);
-                        cs.showText(student.getYear());
+                        cs.showText(student.getStartYear());
                         cs.endText();
 
                         // Classification

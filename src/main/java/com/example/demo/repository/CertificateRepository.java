@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface CertificateRepository extends JpaRepository<Certificate, String> {
+public interface CertificateRepository extends JpaRepository<Certificate, Long> {
     Optional<Certificate> findCertificateByStudentId(String studentId);
 }
