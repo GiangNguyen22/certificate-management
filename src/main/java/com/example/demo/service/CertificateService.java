@@ -94,4 +94,18 @@ public class CertificateService {
 
         return tempFile;
     }
+
+    /**
+     * Sign certificate with staff's private key
+     */
+    public Certificate signCertificate(String certificateId, String staffId) throws Exception {
+        // Get certificate
+        Certificate cert = certRepo.findById(Long.parseLong(certificateId))
+                .orElseThrow(() -> new RuntimeException("Certificate not found"));
+
+        // Here we would implement the actual signing logic
+        // For now, just update the status to indicate it's signed
+        cert.setStatus("SIGNED");
+        return certRepo.save(cert);
+    }
 }

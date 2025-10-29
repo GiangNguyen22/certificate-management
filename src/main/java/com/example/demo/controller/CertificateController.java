@@ -26,4 +26,10 @@ public class CertificateController {
         Path tempFile = certificateService.exportP12ToFile(studentId);
         return ResponseEntity.ok(tempFile);
     }
+
+    @PostMapping("/sign")
+    public ResponseEntity<Certificate> signCertificate(@RequestParam String certificateId, @RequestParam String staffId) throws Exception {
+        Certificate cert = certificateService.signCertificate(certificateId, staffId);
+        return ResponseEntity.ok(cert);
+    }
 }
