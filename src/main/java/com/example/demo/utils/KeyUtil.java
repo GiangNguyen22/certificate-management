@@ -1,7 +1,6 @@
-
 package com.example.demo.utils;
 
-import com.example.demo.entity.Student;
+import com.example.demo.entity.Staff;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -9,7 +8,7 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import com.example.demo.entity.Staff;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
@@ -23,88 +22,70 @@ import java.util.Enumeration;
 import java.util.Objects;
 
 public class KeyUtil {
-    private String privateKey;
-    private String publicKey;
+    private PrivateKey privateKey;
+    private PublicKey publicKey;
     private String createAt;
-    private String CryptoType; 
-    public KeyUtil(){
+    private String cryptoType;
 
-    }
-    public String getPrivateKey(){
-        return this.privateKey;
-    }
-    public String getPublicKey(){
-        return this.publicKey;  
-    }
-    public String getCreateAt(){
-        return this.createAt;
-    }
-    public String getCryptoType(){
-        return this.CryptoType;
-    }
-    public void setPrivateKey(String privateKey){
-        this.privateKey = privateKey;
-    }
-    public void setPublicKey(String publicKey){
-        this.publicKey = publicKey;
-    }
-    public void setCreateAt(String createAt){
-        this.createAt = createAt;
-    }
-    public void setCryptoType(String CryptoType){
-        this.CryptoType = CryptoType;
-    }
+    public KeyUtil() {}
+
+    public PrivateKey getPrivateKey() { return privateKey; }
+    public PublicKey getPublicKey() { return publicKey; }
+    public String getCreateAt() { return createAt; }
+    public String getCryptoType() { return cryptoType; }
+
+    public void setPrivateKey(PrivateKey privateKey) { this.privateKey = privateKey; }
+    public void setPublicKey(PublicKey publicKey) { this.publicKey = publicKey; }
+    public void setCreateAt(String createAt) { this.createAt = createAt; }
+    public void setCryptoType(String cryptoType) { this.cryptoType = cryptoType; }
 
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public enum KeyAlgo { EC, RSA }
+    public enum KeyAlgo { RSA, EC }
 
     public static class CertOptions {
-        public KeyAlgo keyAlgo = KeyAlgo.EC;
-        public String ecCurve = "secp256r1"; // for EC
-        public int rsaKeySize = 2048; // for RSA
-        public String sigAlgEc = "SHA256withECDSA";
+        public KeyAlgo keyAlgo = KeyAlgo.RSA;        // ✅ mặc định RSA
+        public String ecCurve = "secp256r1";         // cho EC
+        public int rsaKeySize = 2048;                // cho RSA
         public String sigAlgRsa = "SHA256withRSA";
+        public String sigAlgEc = "SHA256withECDSA";
         public int validityDays = 365;
-        public String subjectDn; // if null, DnUtil.buildDnName(student) used
-        public BigInteger serialNumber; // if null uses currentTime millis
-        public PrivateKey issuerPrivateKey; // optional: sign by issuer (create chain)
-        public X509Certificate issuerCert;  // optional: issuer cert for chain
+        public String subjectDn;
+        public BigInteger serialNumber;
+        public PrivateKey issuerPrivateKey;
+        public X509Certificate issuerCert;
     }
 
     /**
-     * Generate PKCS12 keystore (.p12) as Base64 string using flexible options.
-     * If options.issuerPrivateKey/options.issuerCert provided, certificate will be signed by issuer (chain).
+     * Sinh keystore PKCS12 (.p12) và xuất base64, có thể chọn EC hoặc RSA (mặc định RSA)
      */
     public String generatePKCS12Base64(String alias, char[] password, Staff staff, CertOptions options) throws Exception {
         Objects.requireNonNull(alias, "alias required");
         Objects.requireNonNull(password, "password required");
 
-        // 1. generate keypair
-        KeyPair keyPair;
         if (options == null) options = new CertOptions();
+
+        // 1️⃣ Tạo KeyPair theo thuật toán được chọn
+        KeyPair keyPair;
         if (options.keyAlgo == KeyAlgo.EC) {
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC", "BC");
             keyGen.initialize(new ECGenParameterSpec(options.ecCurve));
             keyPair = keyGen.generateKeyPair();
             this.setCryptoType("EC");
-            this.setCreateAt(new Date().toString());
-            this.setPrivateKey(keyPair.getPrivate().toString());
-            this.setPublicKey(keyPair.getPublic().toString());
         } else {
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "BC");
             keyGen.initialize(options.rsaKeySize);
             keyPair = keyGen.generateKeyPair();
             this.setCryptoType("RSA");
-            this.setCreateAt(new Date().toString());
-            this.setPrivateKey(keyPair.getPrivate().toString());
-            this.setPublicKey(keyPair.getPublic().toString());
-        
+            this.setPrivateKey(keyPair.getPrivate());
+            this.setPublicKey(keyPair.getPublic());
         }
 
-        // 2. build subject DN
+        this.setCreateAt(new Date().toString());
+      
+        // 2️⃣ Xây dựng Subject DN
         X500Name subject;
         if (options.subjectDn != null && !options.subjectDn.isBlank()) {
             subject = new X500Name(options.subjectDn);
@@ -112,60 +93,56 @@ public class KeyUtil {
             subject = DnUtil.buildDnName(staff);
         }
 
-        // 3. validity & serial
+        // 3️⃣ Thời hạn & serial
         long now = System.currentTimeMillis();
         Date startDate = new Date(now);
-        Date endDate = new Date(now + (long) Math.max(1, options.validityDays) * 24 * 60 * 60 * 1000);
+        Date endDate = new Date(now + (long) options.validityDays * 24 * 60 * 60 * 1000);
         BigInteger serial = options.serialNumber != null ? options.serialNumber : BigInteger.valueOf(now);
 
-        // 4. prepare signer: if issuer provided use issuer private key and issuer DN; otherwise self-sign
-        String sigAlg = (options.keyAlgo == KeyAlgo.RSA) ? options.sigAlgRsa : options.sigAlgEc;
+        // 4️⃣ Tạo signer
+        String sigAlg = (options.keyAlgo == KeyAlgo.EC) ? options.sigAlgEc : options.sigAlgRsa;
         ContentSigner contentSigner;
         X500Name issuerName;
+
         if (options.issuerPrivateKey != null && options.issuerCert != null) {
             contentSigner = new JcaContentSignerBuilder(sigAlg).setProvider("BC").build(options.issuerPrivateKey);
             issuerName = new X500Name(options.issuerCert.getSubjectX500Principal().getName());
         } else {
             contentSigner = new JcaContentSignerBuilder(sigAlg).setProvider("BC").build(keyPair.getPrivate());
-            issuerName = subject; // self-signed
+            issuerName = subject;
         }
 
+        // 5️⃣ Xây dựng chứng chỉ X.509
         JcaX509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
                 issuerName, serial, startDate, endDate, subject, keyPair.getPublic()
         );
-
         X509CertificateHolder certHolder = certBuilder.build(contentSigner);
         X509Certificate cert = new JcaX509CertificateConverter().setProvider("BC").getCertificate(certHolder);
 
-        // 5. create keystore and chain: if issuerCert provided, chain = {cert, issuerCert}
+        // 6️⃣ Tạo keystore PKCS12
         KeyStore pkcs12 = KeyStore.getInstance("PKCS12");
         pkcs12.load(null, null);
+
         if (options.issuerCert != null) {
             pkcs12.setKeyEntry(alias, keyPair.getPrivate(), password, new Certificate[]{cert, options.issuerCert});
         } else {
             pkcs12.setKeyEntry(alias, keyPair.getPrivate(), password, new Certificate[]{cert});
         }
 
-        // 6. export to Base64 with try-with-resources and clear password array
+        // 7️⃣ Xuất keystore Base64
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             pkcs12.store(baos, password);
             String base64 = Base64.getEncoder().encodeToString(baos.toByteArray());
-            // zero password for security
-            for (int i = 0; i < password.length; i++) password[i] = 0;
+            for (int i = 0; i < password.length; i++) password[i] = 0; // clear password
             return base64;
         }
     }
 
-    /**
-     * Overload for backward compatibility: original simple generate (EC, 1 year, self-signed)
-     */
     public String generatePKCS12Base64(String alias, char[] password, Staff staff) throws Exception {
         return generatePKCS12Base64(alias, password, staff, null);
     }
 
-    /**
-     * Load PrivateKey from Base64-encoded .p12 with alias fallback (first alias if provided alias missing).
-     */
+    // 🔒 Các hàm load key/cert giữ nguyên
     public static PrivateKey getPrivateKeyFromBase64(String base64P12, String alias, char[] password) throws Exception {
         Objects.requireNonNull(base64P12, "base64P12 required");
         byte[] p12Bytes = Base64.getDecoder().decode(base64P12);
@@ -181,19 +158,13 @@ public class KeyUtil {
         return (PrivateKey) pkcs12.getKey(useAlias, password);
     }
 
-    /**
-     * Load PublicKey from Base64-encoded .p12 with alias fallback.
-     */
     public static PublicKey getPublicKeyFromBase64(String base64P12, String alias, char[] password) throws Exception {
         Objects.requireNonNull(base64P12, "base64P12 required");
         byte[] p12Bytes = Base64.getDecoder().decode(base64P12);
         KeyStore pkcs12 = KeyStore.getInstance("PKCS12");
         pkcs12.load(new ByteArrayInputStream(p12Bytes), password);
 
-        String useAlias = alias;
-        Certificate cert = null;
-        if (useAlias != null) cert = pkcs12.getCertificate(useAlias);
-
+        Certificate cert = alias != null ? pkcs12.getCertificate(alias) : null;
         if (cert == null) {
             Enumeration<String> aliases = pkcs12.aliases();
             String first = aliases.hasMoreElements() ? aliases.nextElement() : null;
@@ -203,17 +174,13 @@ public class KeyUtil {
         return cert.getPublicKey();
     }
 
-    /**
-     * Load X.509 Certificate from Base64-encoded .p12 with alias fallback.
-     */
     public static X509Certificate getCertificateFromBase64(String base64P12, String alias, char[] password) throws Exception {
         Objects.requireNonNull(base64P12, "base64P12 required");
         byte[] p12Bytes = Base64.getDecoder().decode(base64P12);
         KeyStore pkcs12 = KeyStore.getInstance("PKCS12");
         pkcs12.load(new ByteArrayInputStream(p12Bytes), password);
 
-        Certificate cert = null;
-        if (alias != null) cert = pkcs12.getCertificate(alias);
+        Certificate cert = alias != null ? pkcs12.getCertificate(alias) : null;
         if (cert == null) {
             Enumeration<String> aliases = pkcs12.aliases();
             String first = aliases.hasMoreElements() ? aliases.nextElement() : null;

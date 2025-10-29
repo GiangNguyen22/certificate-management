@@ -1,5 +1,6 @@
+/*
+  
 
- 
 package com.example.demo.config;
 
 import com.example.demo.entity.*;
@@ -32,7 +33,6 @@ public class BatchDataLoader implements CommandLineRunner {
         insertUsersStaffStudents();
         insertStudentFilesAndRequests();
         insertCertificates();
-        insertUserPublicKeys();
     }
 
     private void insertDepartments() {
@@ -245,35 +245,9 @@ public class BatchDataLoader implements CommandLineRunner {
         }
     }
 
-   private void insertUserPublicKeys() {
-    Long cnt = em.createQuery("select count(u) from UserPublicKeys u", Long.class).getSingleResult();
-    if (cnt == 0) {
-        // ✅ Tạo key công khai cho sinh viên đã có (STU001, STU002)
-        TypedQuery<Student> q = em.createQuery(
-                "select s from Student s where s.studentCode in (:c1, :c2)",
-                Student.class
-        );
-        q.setParameter("c1", "STU001");
-        q.setParameter("c2", "STU002");
-
-        q.getResultStream().forEach(s -> {
-            UserPublicKeys upk = new UserPublicKeys();
-
-            // user_id: lưu id nếu có, hoặc fallback về studentCode
-            upk.setUserId(s.getId() != null ? String.valueOf(s.getId()) : s.getStudentCode());
-
-            // public_key: tạo chuỗi public key demo
-            upk.setPublicKey("MIIBIjANBgkqh...FAKEPUBLICKEY-for-" + s.getStudentCode());
-
-            // thời gian tạo (ISO format)
-            upk.setCreatedAt(LocalDateTime.now().toString());
-
-            // ✅ thêm trường mới cryptography_type (ví dụ ECC hoặc RSA)
-            upk.setCryptographyType("ECC");
-
-            em.persist(upk);
-        });
-    }
-}
+  
 
 }
+
+
+ */
