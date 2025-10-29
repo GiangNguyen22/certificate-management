@@ -1,3 +1,5 @@
+
+ 
 package com.example.demo.config;
 
 import com.example.demo.entity.*;
@@ -225,7 +227,10 @@ public class BatchDataLoader implements CommandLineRunner {
                 Certificate c = new Certificate();
                 c.setCertId("CERT-STU001-0001");
                 c.setTemplateId("TEMPLATE_DEFAULT");
-                c.setStudentId(s.getStudentCode());
+                // store the owner user id
+                if (s.getId() != null) {
+                    c.setUserId(s.getId());
+                }
                 c.setIssued_at(LocalDateTime.now().minusDays(1).toString());
                 c.setExpire_at(LocalDateTime.now().plusYears(1).toString());
                 c.setStatus("ACTIVE");
@@ -240,14 +245,35 @@ public class BatchDataLoader implements CommandLineRunner {
         }
     }
 
-    private void insertUserPublicKeys() {
-        Long cnt = em.createQuery("select count(u) from UserPublicKeys u", Long.class).getSingleResult();
-        if (cnt == 0) {
+   private void insertUserPublicKeys() {
+    Long cnt = em.createQuery("select count(u) from UserPublicKeys u", Long.class).getSingleResult();
+    if (cnt == 0) {
+        // ✅ Tạo key công khai cho sinh viên đã có (STU001, STU002)
+        TypedQuery<Student> q = em.createQuery(
+                "select s from Student s where s.studentCode in (:c1, :c2)",
+                Student.class
+        );
+        q.setParameter("c1", "STU001");
+        q.setParameter("c2", "STU002");
+
+        q.getResultStream().forEach(s -> {
             UserPublicKeys upk = new UserPublicKeys();
-            upk.setUser_id("STU001");
-            upk.setPublic_key("MIIBIjANBgkqh...FAKEPUBLICKEY...");
-            upk.setCreated_at(LocalDateTime.now().toString());
+
+            // user_id: lưu id nếu có, hoặc fallback về studentCode
+            upk.setUserId(s.getId() != null ? String.valueOf(s.getId()) : s.getStudentCode());
+
+            // public_key: tạo chuỗi public key demo
+            upk.setPublicKey("MIIBIjANBgkqh...FAKEPUBLICKEY-for-" + s.getStudentCode());
+
+            // thời gian tạo (ISO format)
+            upk.setCreatedAt(LocalDateTime.now().toString());
+
+            // ✅ thêm trường mới cryptography_type (ví dụ ECC hoặc RSA)
+            upk.setCryptographyType("ECC");
+
             em.persist(upk);
-        }
+        });
     }
+}
+
 }

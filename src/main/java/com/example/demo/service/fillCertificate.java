@@ -34,7 +34,7 @@ public class fillCertificate {
         Student student = studentOpt.get();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    String dobFormatted = student.getDob().format(formatter);
+        String dobFormatted = student.getDob().format(formatter);
         String issuedDate = LocalDate.now().format(formatter);
 
         File outDir = new File("certificates");

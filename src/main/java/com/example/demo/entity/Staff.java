@@ -2,8 +2,9 @@ package com.example.demo.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,12 +12,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Entity
-@PrimaryKeyJoinColumn(name = "user_id")
-
+@Builder
+@Table(name = "staff")
 public class Staff extends User {
 
     private String name;
     @Column(name="staff_code")
     private String staffCode;
+    private String position;
+    private String majorName;
+    
 }
 

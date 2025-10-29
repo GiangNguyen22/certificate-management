@@ -1,45 +1,42 @@
 package com.example.demo;
 
-import com.example.demo.entity.Student;
-import com.example.demo.service.StudentService;
-import com.example.demo.service.fillCertificate;
-
-import com.example.demo.utils.KeyUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.service.interfaces.p12Service;
+import com.example.demo.service.CertificateService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
-import java.util.Optional;
+import java.nio.file.Path;
 
 @SpringBootApplication
 public class CertificateManagementApplication {
 
-	public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
-		SpringApplication.run(CertificateManagementApplication.class, args);
+        // ✅ Start Spring Boot once and get the ApplicationContext
+        ApplicationContext context = SpringApplication.run(CertificateManagementApplication.class, args);
 
-//		ApplicationContext context = SpringApplication.run(CertificateManagementApplication.class, args);
-//
-//		// Lấy bean StudentService đã được Spring quản lý
-//		StudentService studentService = context.getBean(StudentService.class);
+        // --- Smoke test 1: Generate .p12 file for staff id = 1 ---
+        try {
+            p12Service p12 = context.getBean(p12Service.class);
+            System.out.println("Invoking p12Service.generateP12(\"STF001\") as a quick smoke-test...");
+            p12.generateP12("STF001");
+            System.out.println("✅ Smoke-test finished. Check ./keycert/ for created .p12 files (if staff with id=1 exists).\n");
+        } catch (Exception ex) {
+            System.err.println("❌ Smoke-test p12 generation failed: " + ex.getMessage());
+        }
 
-		// Gọi phương thức
-		//studentService.createStudent();
-//		Optional<Student> s = studentService.getStudent("68d55b6ae404c5e89c6851de");
-//		System.out.println(s.toString());
+        // --- Smoke test 2: Create certificate for staff id = 1 ---
+        // try {
+        //     CertificateService certService = context.getBean(CertificateService.class);
+        //     System.out.println("Invoking CertificateService.create(\"123\", \"123456\") ...");
 
-//		fillCertificate fillCert = context.getBean(fillCertificate.class);
-//		try {
-//			String filePath = fillCert.generateCertificate("11111111");
-//			System.out.println("Certificate generated at: " + filePath);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
+        //     Path created = certService.create("123", "123456");
+        //     System.out.println("✅ CertificateService created file: " + created.toAbsolutePath());
+        // } catch (Exception ex) {
+        //     System.err.println("❌ CertificateService smoke-test failed: " + ex.getMessage());
+        // }
 
-//		System.out.println(KeyUtil.generatePKCS12Base64("student-1", "123456".toCharArray() ));
-
-		
-	}
-
+        // You can add other tests here if needed, but avoid re-running SpringApplication.run()
+    }
 }
