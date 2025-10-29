@@ -15,9 +15,11 @@ import com.example.demo.service.CertificateService;
 @Service
 public class p12ServiceImpl implements p12Service {
     private final StaffRepository staffRepository;
+    private final CertificateService certificateService;
 
-    public p12ServiceImpl(StaffRepository staffRepository) {
+    public p12ServiceImpl(StaffRepository staffRepository, CertificateService certificateService) {
         this.staffRepository = staffRepository;
+        this.certificateService = certificateService;
     }
 
     /**
@@ -34,15 +36,16 @@ public class p12ServiceImpl implements p12Service {
         else{
 
             try {
-            // alias will be staff code if available, otherwise fallback to id
-            String alias = staff.getStaffCode() != null && !staff.getStaffCode().isBlank()
-                    ? staff.getStaffCode()
-                    : ("staff-" + staff.getId());
+        // alias will be staff code if available, otherwise fallback to id
+        String alias = staff.getStaffCode() != null && !staff.getStaffCode().isBlank()
+            ? staff.getStaffCode()
+            : ("staff-" + staff.getId());
 
-            // generate base64-encoded PKCS12
-            CertificateService certService = new CertificateService();
-            certService.create(staff.getStaffCode(), alias);      
-            System.out.println("[p12Service] Generated keystore for staff staffCode=" + staffCode + " at: ");
+        // Use the Spring-managed CertificateService to create a PKCS#12.
+        // CertificateService.create(staffId, password) expects a password param; use a demo password for smoke-tests.
+        String demoPassword = "123456";
+        certificateService.create(staff.getStaffCode(), demoPassword);
+        System.out.println("[p12Service] Generated keystore for staff staffCode=" + staffCode + " at: ");
             
             // Save to db
             
