@@ -8,4 +8,5 @@ import com.example.demo.entity.Staff;
 public interface StaffRepository extends JpaRepository<Staff, Long> {
     // Custom query methods (if needed) can be defined here
     Staff findByStaffCode(String staffCode);
+    java.util.Optional<Staff> findByUsername(String username);
 }

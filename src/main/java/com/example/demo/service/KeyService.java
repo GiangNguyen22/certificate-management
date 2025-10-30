@@ -46,9 +46,9 @@ public class KeyService {
 
         // Save to database
         UserPublicKeys keyEntity = new UserPublicKeys();
-        keyEntity.setUser_id(userId);
-        keyEntity.setPublic_key(publicKeyBase64);
-        keyEntity.setCreated_at(java.time.LocalDateTime.now().toString());
+        keyEntity.setUserId(userId);
+        keyEntity.setPublicKey(publicKeyBase64);
+        keyEntity.setCreatedAt(java.time.LocalDateTime.now().toString());
 
         UserPublicKeys savedKey = keyRepository.save(keyEntity);
 
@@ -85,7 +85,7 @@ public class KeyService {
         UserPublicKeys key = keyRepository.findById(keyId)
                 .orElseThrow(() -> new RuntimeException("Key not found"));
 
-        User user = userRepository.findById(Long.parseLong(key.getUser_id()))
+        User user = userRepository.findById(Long.parseLong(key.getUserId()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String fileName = "key_" + user.getUsername() + "_" + keyId + ".crt";

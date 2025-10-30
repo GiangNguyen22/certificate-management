@@ -81,6 +81,15 @@ public class BatchDataLoader implements CommandLineRunner {
             rAdmin.setPermissions(adminPerms);
             em.persist(rAdmin);
 
+            Role rStaff = new Role();
+            rStaff.setName("ROLE_STAFF");
+            rStaff.setDescription("Staff role");
+            Set<Permission> staffPerms = new HashSet<>();
+            staffPerms.add(pCreate);
+            staffPerms.add(pView);
+            rStaff.setPermissions(staffPerms);
+            em.persist(rStaff);
+
             Role rStudent = new Role();
             rStudent.setName("ROLE_STUDENT");
             rStudent.setDescription("Student role");
@@ -88,6 +97,7 @@ public class BatchDataLoader implements CommandLineRunner {
             studentPerms.add(pView);
             rStudent.setPermissions(studentPerms);
             em.persist(rStudent);
+
         }
     }
 
