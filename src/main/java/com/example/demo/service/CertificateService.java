@@ -3,8 +3,11 @@ package com.example.demo.service;
 
 import com.example.demo.exceptions.ResourceNotFoundEx;
 import com.example.demo.repository.StaffRepository;
+import com.example.demo.repository.CertificateRepository;
 import com.example.demo.utils.KeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -12,10 +15,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import com.example.demo.entity.Staff;
+import com.example.demo.entity.Certificate;
 
 import com.example.demo.service.interfaces.UserKeyService;
 
@@ -25,6 +32,9 @@ public class CertificateService {
 
     @Autowired
     private StaffRepository staffRepository;
+
+    @Autowired
+    private CertificateRepository certRepo;
 
     public Path create(String staffId, String password) throws Exception {
         // 1️⃣ Lấy thông tin staff
@@ -98,5 +108,113 @@ public class CertificateService {
         info.put("signatureAlgorithm", x509.getSigAlgName());
         info.put("version", x509.getVersion());
         return info;
+    }
+
+    /**
+     * Export .p12 ra file tạm để tải về
+     */
+    public Path exportP12ToFile(String studentId) throws Exception {
+        com.example.demo.entity.Certificate certEntity = certRepo.findByCertId(studentId)
+                .orElseThrow(() -> new RuntimeException("Certificate not found"));
+
+        // Decode Base64
+        byte[] p12Bytes = Base64.getDecoder().decode(certEntity.getCertificate());
+
+        // Tạo file tạm
+        Path tempFile = Files.createTempFile(studentId + "_cert", ".p12");
+        Files.write(tempFile, p12Bytes);
+        System.out.println(tempFile.toAbsolutePath());
+
+        return tempFile;
+    }
+
+    /**
+     * Sign certificate with staff's private key
+     */
+    public Certificate signCertificate(String certificateId, String staffId) throws Exception {
+        // Get certificate
+        Certificate cert = certRepo.findById(Long.parseLong(certificateId))
+                .orElseThrow(() -> new RuntimeException("Certificate not found"));
+
+        // Here we would implement the actual signing logic
+        // For now, just update the status to indicate it's signed
+        cert.setStatus("SIGNED");
+        return certRepo.save(cert);
+    }
+
+    /**
+     * Get all certificates with pagination
+     */
+    public Page<Certificate> getAllCertificatesPaged(Pageable pageable) {
+        return certRepo.findAll(pageable);
+    }
+
+    /**
+     * Get certificate PDF bytes
+     */
+    public byte[] getCertificatePdf(String certificateId) throws Exception {
+        Certificate cert = certRepo.findById(Long.parseLong(certificateId))
+                .orElseThrow(() -> new RuntimeException("Certificate not found"));
+
+        // For now, return the certificate data as bytes
+        // In a real implementation, this would generate or retrieve the actual PDF
+        if (cert.getPdf_uri() != null) {
+            // If PDF URI exists, read from file system
+            Path pdfPath = Path.of(cert.getPdf_uri());
+            if (Files.exists(pdfPath)) {
+                return Files.readAllBytes(pdfPath);
+            }
+        }
+
+        // Fallback: return certificate data as base64 decoded bytes
+        if (cert.getCertificate() != null) {
+            return Base64.getDecoder().decode(cert.getCertificate());
+        }
+
+        throw new RuntimeException("No PDF data available for certificate: " + certificateId);
+    }
+
+    /**
+     * Get certificate expiration statistics
+     */
+    public Map<String, Object> getExpirationStats() {
+        List<Certificate> allCertificates = certRepo.findAll();
+        LocalDate now = LocalDate.now();
+
+        long expiringSoon = allCertificates.stream()
+                .filter(cert -> cert.getExpire_at() != null && !cert.getExpire_at().isEmpty())
+                .filter(cert -> {
+                    try {
+                        LocalDate expireDate = LocalDate.parse(cert.getExpire_at().substring(0, 10)); // Extract date part
+                        long daysUntilExpiry = ChronoUnit.DAYS.between(now, expireDate);
+                        return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .count();
+
+        long expired = allCertificates.stream()
+                .filter(cert -> cert.getExpire_at() != null && !cert.getExpire_at().isEmpty())
+                .filter(cert -> {
+                    try {
+                        LocalDate expireDate = LocalDate.parse(cert.getExpire_at().substring(0, 10)); // Extract date part
+                        return expireDate.isBefore(now);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .count();
+
+        long totalActive = allCertificates.stream()
+                .filter(cert -> "ACTIVE".equalsIgnoreCase(cert.getStatus()))
+                .count();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("expiringSoon", expiringSoon);
+        stats.put("expired", expired);
+        stats.put("totalActive", totalActive);
+
+        return stats;
     }
 }

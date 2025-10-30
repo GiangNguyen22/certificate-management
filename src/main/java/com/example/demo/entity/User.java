@@ -9,11 +9,11 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-@MappedSuperclass
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-
+@Inheritance(strategy = InheritanceType.JOINED) // hoặc SINGLE_TABLE nếu bạn muốn
+@Entity
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
