@@ -32,7 +32,7 @@ public class CertificateService {
         if (staff == null) {
             throw new ResourceNotFoundEx("Staff not found with ID: " + staffId);
         } else{
-        // 2️⃣ Sinh keystore base64 bằng ECC (self-signed)
+        // 2️⃣ Sinh keystore base64 bằng RSA (self-signed)
         KeyUtil keyUtil = new KeyUtil();
     
         String pkcs12Base64 = keyUtil.generatePKCS12Base64(
@@ -63,10 +63,13 @@ public class CertificateService {
         System.out.println("Certificate info:");
         infoMap.forEach((k, v) -> System.out.println(k + ": " + v));
         System.out.println("Keystore saved at: " + filePath.toAbsolutePath());
+        //convert publickey to base 64
+        String publicKeyBase64 = Base64.getEncoder().encodeToString(keyUtil.getPublicKey().getEncoded());
         //luw vao db
-        saveNewPubKeyInfoWithUser(staff.getStaffCode(), keyUtil.getPublicKey().toString(), java.time.LocalDate.now().toString(), keyUtil.getCryptoType().toString());
-        // 8️⃣ Trả về đường dẫn để controller có thể gửi file
+        saveNewPubKeyInfoWithUser(staff.getStaffCode(), publicKeyBase64, java.time.LocalDateTime.now().toString(), keyUtil.getCryptoType().toString());
+        // Trả về đường dẫn để controller có thể gửi file
         System.out.println(keyUtil.getPublicKey().toString());
+        System.out.println(keyUtil.getPrivateKey().toString());
         return filePath;
         }
          

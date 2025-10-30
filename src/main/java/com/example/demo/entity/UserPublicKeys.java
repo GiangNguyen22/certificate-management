@@ -21,7 +21,8 @@ public class UserPublicKeys {
     @Column(name = "user_id")
     private String userId;
 
-    @Column(name = "public_key")
+    @Lob
+    @Column(name = "public_key", columnDefinition = "TEXT", nullable = false)
     private String publicKey;
 
     @Column(name = "created_at")

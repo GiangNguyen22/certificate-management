@@ -1,72 +1,146 @@
 package com.example.demo.utils;
 
-import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfReader;
-import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.StampingProperties;
 import com.itextpdf.signatures.*;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.*;
-import java.security.KeyStore;
-import java.security.PrivateKey;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.util.Base64;
 
 public class PdfSignerUtil {
 
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
+
     /**
-     * Ký số file PDF bằng private key & certificate trong file .p12 (Base64)
-     *
-     * @param srcPdfPath    PDF đầu vào (tạo từ PdfGenerator)
-     * @param destPdfPath   PDF đầu ra (đã ký số)
-     * @param base64P12     nội dung .p12 dạng Base64 (MongoDB lưu)
-     * @param alias         alias trong keystore (vd: "student123")
-     * @param password      password bảo vệ .p12
+     * Tạo hash SHA-256 cho file PDF.
      */
-    public static void signPdf(String srcPdfPath,
-                               String destPdfPath,
-                               String base64P12,
-                               String alias,
-                               char[] password) throws Exception {
+    public static String hashFile(String filePath) throws Exception {
+        try (InputStream fis = new FileInputStream(filePath)) {
+            byte[] buffer = new byte[1024];
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                digest.update(buffer, 0, bytesRead);
+            }
+            byte[] hashBytes = digest.digest();
+            return Base64.getEncoder().encodeToString(hashBytes);
+        }
+    }
 
-        // 1. Giải mã Base64 -> byte[]
-        byte[] p12Bytes = Base64.getDecoder().decode(base64P12);
+    /**
+     * Ký một hash đã có (ở dạng base64) bằng private key.
+     */
+    public static String signDocumentBase64(String hashBase64, PrivateKey privateKey) throws Exception {
+        byte[] hashBytes = Base64.getDecoder().decode(hashBase64);
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initSign(privateKey);
+        signature.update(hashBytes);
+        byte[] digitalSignature = signature.sign();
+        return Base64.getEncoder().encodeToString(digitalSignature);
+    }
 
-        // 2. Load keystore từ byte[]
-        KeyStore pkcs12 = KeyStore.getInstance("PKCS12");
-        pkcs12.load(new ByteArrayInputStream(p12Bytes), password);
+    /**
+     * Xác minh chữ ký với public key.
+     */
+    public static boolean verifySignature(String hashBase64, String signatureBase64, PublicKey publicKey) throws Exception {
+        byte[] hashBytes = Base64.getDecoder().decode(hashBase64);
+        byte[] signatureBytes = Base64.getDecoder().decode(signatureBase64);
 
-        // 3. Lấy PrivateKey & Certificate chain
-        PrivateKey privateKey = (PrivateKey) pkcs12.getKey(alias, password);
-        Certificate[] chain = pkcs12.getCertificateChain(alias);
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initVerify(publicKey);
+        signature.update(hashBytes);
+        return signature.verify(signatureBytes);
+    }
 
-        if (privateKey == null) {
-            throw new IllegalArgumentException("Không tìm thấy private key với alias: " + alias);
+    /**
+     * Hash + ký trực tiếp file PDF, trả về chữ ký base64.
+     */
+    public static String hashAndSignFile(String filePath, PrivateKey privateKey) throws Exception {
+        String hashBase64 = hashFile(filePath);
+        return signDocumentBase64(hashBase64, privateKey);
+    }
+
+    /**
+     * Nhúng chữ ký vào file PDF (dạng detached CMS signature).
+     */
+    public static String embedSignatureInPdf(String srcPdfPath,String studentCode,
+                                             String signatureBase64, Certificate[] chain) throws Exception {
+        byte[] signatureBytes = Base64.getDecoder().decode(signatureBase64);
+        File outDir = new File("certificates_signed");
+        if (!outDir.exists()) outDir.mkdirs();
+        String outputPath = outDir.getAbsolutePath() + "/" + studentCode + "_certificate.pdf";
+        // Mở file PDF gốc và tạo output stream cho file đích
+        try (PdfReader reader = new PdfReader(srcPdfPath);
+             FileOutputStream os = new FileOutputStream(outputPath)) {
+
+            // Tạo đối tượng PdfSigner với chế độ Append Mode (không ghi đè lên nội dung cũ)
+            PdfSigner signer = new PdfSigner(reader, os, new StampingProperties().useAppendMode());
+
+            // Định nghĩa cơ chế ký ngoài (external signature)
+            IExternalSignature externalSig = new IExternalSignature() {
+                @Override
+                public String getHashAlgorithm() {
+                    return "SHA-256";
+                }
+
+                @Override
+                public String getEncryptionAlgorithm() {
+                    return "RSA";
+                }
+
+                @Override
+                public byte[] sign(byte[] message) {
+                    return signatureBytes; // Dữ liệu chữ ký đã có sẵn
+                }
+            };
+
+            IExternalDigest digest = new BouncyCastleDigest();
+
+            // Thực hiện ký detached (CMS)
+            signer.signDetached(
+                    digest,
+                    externalSig,
+                    chain,
+                    null,
+                    null,
+                    null,
+                    0,
+                    PdfSigner.CryptoStandard.CMS
+            );
         }
 
-        // 4. Chuẩn bị reader & signer
-        PdfReader reader = new PdfReader(srcPdfPath);
-        PdfSigner signer = new PdfSigner(reader,
-                new FileOutputStream(destPdfPath),
-                new StampingProperties());
+        return outputPath;
+    }
 
-        // 5. Cấu hình vị trí hiển thị chữ ký (visible signature)
-        Rectangle rect = new Rectangle(50, 50, 200, 100); // x, y, w, h
-        PdfSignatureAppearance appearance = signer.getSignatureAppearance()
-                .setReason("Student Certificate Digital Signature")
-                .setLocation("MySchool")
-                .setPageRect(rect)
-                .setPageNumber(1)
-                .setReuseAppearance(false);
+    /**
+     * Lấy chuỗi chứng chỉ từ keystore (.p12 hoặc .pfx)
+     */
+    public static Certificate[] getCertificateChainFromKeystore(String keystorePath,
+                                                                String keystorePassword,
+                                                                String alias) throws Exception {
+        KeyStore keystore = KeyStore.getInstance("PKCS12");
+        try (InputStream is = new FileInputStream(keystorePath)) {
+            keystore.load(is, keystorePassword.toCharArray());
+            return keystore.getCertificateChain(alias);
+        }
+    }
 
-        signer.setFieldName("sig_field");
-
-        // 6. Tạo signature
-        IExternalSignature pks = new PrivateKeySignature(privateKey, "SHA256", "BC");
-        IExternalDigest digest = new BouncyCastleDigest();
-
-        // 7. Ký số
-        signer.signDetached(digest, pks, chain, null, null, null, 0,
-                PdfSigner.CryptoStandard.CADES);
+    /**
+     * Lấy private key từ keystore (.p12 hoặc .pfx)
+     */
+    public static PrivateKey getPrivateKeyFromKeystore(String keystorePath,
+                                                       String keystorePassword,
+                                                       String alias,
+                                                       String keyPassword) throws Exception {
+        KeyStore keystore = KeyStore.getInstance("PKCS12");
+        try (InputStream is = new FileInputStream(keystorePath)) {
+            keystore.load(is, keystorePassword.toCharArray());
+            return (PrivateKey) keystore.getKey(alias, keyPassword.toCharArray());
+        }
     }
 }
