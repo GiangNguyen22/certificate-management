@@ -24,7 +24,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
-
+        @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+     return path.contains("/swagger-ui") || 
+         path.contains("/v3/api-docs") ||
+         path.contains("/api-docs") ||
+         path.contains("/swagger-resources") ||
+               path.contains("/webjars") ||
+               path.contains("/api/auth/");
+    }
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {

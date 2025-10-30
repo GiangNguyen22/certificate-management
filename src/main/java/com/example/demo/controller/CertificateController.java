@@ -2,6 +2,9 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Certificate;
 import com.example.demo.service.CertificateService;
+
+import io.swagger.v3.oas.annotations.Operation;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +23,7 @@ public class CertificateController {
     @Autowired
     private CertificateService certificateService;
 
+   
     @PostMapping("/cert")
     public ResponseEntity<String> addCertificate(@RequestParam String studentId, @RequestParam String password) throws Exception {
         certificateService.create(studentId, password);

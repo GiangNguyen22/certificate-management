@@ -2,7 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.UserPublicKeys;
 import com.example.demo.service.KeyService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.service.interfaces.p12Service;
+
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -11,20 +12,31 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/keys")
 public class KeyController {
 
-    @Autowired
-    private KeyService keyService;
+    private final KeyService keyService;
+    private final p12Service p12service;
+
+    public KeyController(KeyService keyService, p12Service p12service) {
+        this.keyService = keyService;
+        this.p12service = p12service;
+    }
 
     @PostMapping("/generate")
-    public ResponseEntity<UserPublicKeys> generateKeyPair(@RequestParam String userId, @RequestParam String password) throws Exception {
-        UserPublicKeys keyPair = keyService.generateKeyPair(userId, password);
-        return ResponseEntity.ok(keyPair);
+    public ResponseEntity<?> generateCertp12(@RequestBody Map<String, String> body) {
+        String staffId = body.get("staffId");
+        String adminId = body.get("adminId");
+        try {
+            String p12CertPath = p12service.generateP12(staffId);
+            return ResponseEntity.ok(p12CertPath);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(e.getMessage());
+        }
     }
 
     @GetMapping
