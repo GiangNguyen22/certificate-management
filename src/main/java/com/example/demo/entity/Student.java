@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class Student extends User {
 
-    @Column(name = "student_code")
+    @Column(name = "student_code", unique = true, nullable = false)
     private String studentCode;
     @Column(name = "major_name")
     private String majorName;

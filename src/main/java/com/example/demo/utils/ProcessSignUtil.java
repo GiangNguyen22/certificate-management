@@ -42,7 +42,7 @@ public class ProcessSignUtil {
          String status = "ISSUED";
         String serialNo = certificate.getSerialNumber().toString();
 
-        certService.saveCertificateRecord(certId, templateId, studentId, issuedAt, expireAt, status, serialNo, pathEmbeddedSign, hashOfPdf);
+        certService.saveCertificateRecord(certId, templateId, studentId,staffCode, issuedAt, expireAt, status, serialNo, pathEmbeddedSign, hashOfPdf);
         return pathEmbeddedSign;
     }
 }

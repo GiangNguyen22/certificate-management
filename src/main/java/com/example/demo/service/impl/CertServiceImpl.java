@@ -43,11 +43,12 @@ public class CertServiceImpl implements CertService {
     @Autowired
     private CertificateRepository certrepo;
     @Override
-    public Certificate saveCertificateRecord(String certId, String templateId, String studentId, String issuedAt, String expireAt, String status, String serialNo, String pdfUri, String pdfSha256) throws Exception {
+    public Certificate saveCertificateRecord(String certId, String templateId, String studentId,String userSignedId ,String issuedAt, String expireAt, String status, String serialNo, String pdfUri, String pdfSha256) throws Exception {
         Certificate cert = new Certificate();
         cert.setCertId(certId);
         cert.setTemplateId(templateId);
         cert.setStudentId(studentId);
+        cert.setUserSignedId(userSignedId);
         cert.setIssued_at(issuedAt);
         cert.setExpire_at(expireAt);
         cert.setStatus(status);

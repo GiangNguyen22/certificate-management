@@ -1,13 +1,16 @@
 package com.example.demo.entity;
+import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,29 +26,23 @@ public class CertificateRequest {
     @Column(name = "template_id")
     private String templateId;
 
+    @Column(name = "request_code", unique = true, nullable = false)
+    private String requestCode;
+
     @Column(name = "request_type")
     private String requestType;
 
-    private String reason;
-
-    @Column(name = "serial_no")
-    private String serialNo;
-
-    private String status;
-
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+     
+    @Column(name = "status", nullable = false)
+    private String status;
 
-    @ManyToOne
-    @JoinColumn(name = "student_id")
-    @JsonIgnore
-    private Student student;
 
-    @ManyToOne
-    @JoinColumn(name = "staff_id")
-    @JsonIgnore
-    private Staff staff;
+    @Column(name = "student_id", nullable = false)
+    private String studentRequestId;
+
 }

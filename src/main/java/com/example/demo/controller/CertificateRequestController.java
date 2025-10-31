@@ -24,38 +24,6 @@ public class CertificateRequestController {
     @Autowired
     private StudentRepositoryI studentRepository;
 
-    @PostMapping
-    public ResponseEntity<?> createRequest(@RequestBody Map<String, Object> requestData, Authentication authentication) {
-        try {
-            String templateId = (String) requestData.get("templateId");
-            String requestType = (String) requestData.get("requestType");
-            String reason = (String) requestData.get("reason");
-            String serialNo = (String) requestData.get("serialNo");
-
-            // Get current user ID from authentication
-            String username = authentication.getName();
-            // For now, we'll need to get student ID from username
-            // This should be improved to get from JWT token or user context
-
-            Long studentId = getStudentIdFromUsername(username); // Implement this method
-
-            CertificateRequest request = certificateRequestService.createRequest(
-                templateId, requestType, reason, serialNo, studentId
-            );
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", request.getId());
-            response.put("message", "Certificate request created successfully");
-            response.put("status", request.getStatus());
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("message", "Failed to create certificate request: " + e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
-    }
-
     @GetMapping
     public ResponseEntity<Page<CertificateRequest>> getAllRequests(
             @RequestParam(defaultValue = "0") int page,
@@ -64,17 +32,7 @@ public class CertificateRequestController {
         return ResponseEntity.ok(requests);
     }
 
-    @GetMapping("/my")
-    public ResponseEntity<List<CertificateRequest>> getMyRequests(Authentication authentication) {
-        try {
-            String username = authentication.getName();
-            Long studentId = getStudentIdFromUsername(username);
-            List<CertificateRequest> requests = certificateRequestService.getRequestsByStudent(studentId);
-            return ResponseEntity.ok(requests);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
+   
 
     @GetMapping("/recent")
     public ResponseEntity<List<CertificateRequest>> getRecentRequests(@RequestParam(defaultValue = "5") int size) {
@@ -111,11 +69,5 @@ public class CertificateRequestController {
         }
     }
 
-    // Helper method - should be implemented properly
-    private Long getStudentIdFromUsername(String username) {
-        // Find student by username
-        return studentRepository.findByUsername(username)
-                .map(Student::getId)
-                .orElseThrow(() -> new RuntimeException("Student not found for username: " + username));
-    }
+   
 }

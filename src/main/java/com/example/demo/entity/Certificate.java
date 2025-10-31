@@ -23,6 +23,7 @@ public class Certificate {
     private String certId;
     private String templateId;
     private String studentId;
+    private String userSignedId;
     private String issued_at;
     private String expire_at;
     private String status;

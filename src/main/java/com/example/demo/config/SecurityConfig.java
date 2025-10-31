@@ -47,7 +47,9 @@ public class SecurityConfig {
                     "/configuration/security"
                 ).permitAll()
                 .requestMatchers("/api/v1/requests/**",
-                    "/api/keys/generate").permitAll()
+                    "/api/v1/requests/*/signrequest",
+                    "/api/keys/generate"
+                    ).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/certificates/**").hasAnyRole("ADMIN", "STAFF")
                 .requestMatchers("/api/certificate-requests/**").authenticated()
