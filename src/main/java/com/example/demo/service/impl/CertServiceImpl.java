@@ -3,7 +3,9 @@ package com.example.demo.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.entity.Certificate;
 import com.example.demo.entity.Student;
+import com.example.demo.repository.CertificateRepository;
 import com.example.demo.service.fillCertificate;
 import com.example.demo.service.interfaces.CertService;
 import com.example.demo.service.StudentService;
@@ -38,5 +40,25 @@ public class CertServiceImpl implements CertService {
         return pdfPath;
     }
 
+    @Autowired
+    private CertificateRepository certrepo;
+    @Override
+    public Certificate saveCertificateRecord(String certId, String templateId, String studentId, String issuedAt, String expireAt, String status, String serialNo, String pdfUri, String pdfSha256) throws Exception {
+        Certificate cert = new Certificate();
+        cert.setCertId(certId);
+        cert.setTemplateId(templateId);
+        cert.setStudentId(studentId);
+        cert.setIssued_at(issuedAt);
+        cert.setExpire_at(expireAt);
+        cert.setStatus(status);
+        cert.setSerial_no(serialNo);
+        cert.setPdf_uri(pdfUri);
+        cert.setPdf_sha256(pdfSha256);
+
+        // Here you would typically save the certificate to the database
+        
+
+        return certrepo.save(cert);
+    }
 }
 

@@ -29,13 +29,6 @@ public class CertificateController {
         certificateService.create(studentId, password);
         return new ResponseEntity<>("Certificate created successfully", HttpStatus.CREATED);
     }
-
-    @PostMapping("/cert/saveFile")
-    public ResponseEntity<Path> saveFile(@RequestParam String studentId) throws Exception {
-        Path tempFile = certificateService.exportP12ToFile(studentId);
-        return ResponseEntity.ok(tempFile);
-    }
-
     @PostMapping("/cert/sign")
     public ResponseEntity<Certificate> signCertificate(@RequestParam String certificateId, @RequestParam String staffId) throws Exception {
         Certificate cert = certificateService.signCertificate(certificateId, staffId);
@@ -65,18 +58,7 @@ public class CertificateController {
         }
     }
 
-    @GetMapping("/certificates/{id}/pdf")
-    public ResponseEntity<byte[]> getCertificatePdf(@PathVariable String id) {
-        try {
-            byte[] pdfBytes = certificateService.getCertificatePdf(id);
-            return ResponseEntity.ok()
-                    .header("Content-Type", "application/pdf")
-                    .header("Content-Disposition", "inline; filename=\"certificate_" + id + ".pdf\"")
-                    .body(pdfBytes);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+
 
     @GetMapping("/certificates/expiration-stats")
     public ResponseEntity<Map<String, Object>> getExpirationStats() {

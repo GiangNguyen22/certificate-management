@@ -110,23 +110,7 @@ public class CertificateService {
         return info;
     }
 
-    /**
-     * Export .p12 ra file tạm để tải về
-     */
-    public Path exportP12ToFile(String studentId) throws Exception {
-        com.example.demo.entity.Certificate certEntity = certRepo.findByCertId(studentId)
-                .orElseThrow(() -> new RuntimeException("Certificate not found"));
-
-        // Decode Base64
-        byte[] p12Bytes = Base64.getDecoder().decode(certEntity.getCertificate());
-
-        // Tạo file tạm
-        Path tempFile = Files.createTempFile(studentId + "_cert", ".p12");
-        Files.write(tempFile, p12Bytes);
-        System.out.println(tempFile.toAbsolutePath());
-
-        return tempFile;
-    }
+    
 
     /**
      * Sign certificate with staff's private key
@@ -149,30 +133,7 @@ public class CertificateService {
         return certRepo.findAll(pageable);
     }
 
-    /**
-     * Get certificate PDF bytes
-     */
-    public byte[] getCertificatePdf(String certificateId) throws Exception {
-        Certificate cert = certRepo.findById(Long.parseLong(certificateId))
-                .orElseThrow(() -> new RuntimeException("Certificate not found"));
-
-        // For now, return the certificate data as bytes
-        // In a real implementation, this would generate or retrieve the actual PDF
-        if (cert.getPdf_uri() != null) {
-            // If PDF URI exists, read from file system
-            Path pdfPath = Path.of(cert.getPdf_uri());
-            if (Files.exists(pdfPath)) {
-                return Files.readAllBytes(pdfPath);
-            }
-        }
-
-        // Fallback: return certificate data as base64 decoded bytes
-        if (cert.getCertificate() != null) {
-            return Base64.getDecoder().decode(cert.getCertificate());
-        }
-
-        throw new RuntimeException("No PDF data available for certificate: " + certificateId);
-    }
+  
 
     /**
      * Get certificate expiration statistics
