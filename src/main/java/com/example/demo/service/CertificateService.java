@@ -1,12 +1,13 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.Certificate;
-import com.example.demo.entity.Student;
+
 import com.example.demo.exceptions.ResourceNotFoundEx;
+import com.example.demo.repository.StaffRepository;
 import com.example.demo.repository.CertificateRepository;
-import com.example.demo.repository.StudentRepositoryI;
 import com.example.demo.utils.KeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -14,84 +15,167 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import com.example.demo.entity.Staff;
+import com.example.demo.entity.Certificate;
 
+import com.example.demo.service.interfaces.UserKeyService;
 
 @Service
 public class CertificateService {
+
+
+    @Autowired
+    private StaffRepository staffRepository;
+
     @Autowired
     private CertificateRepository certRepo;
 
-    @Autowired
-    private CertificateRepository certificateRepository;
-    @Autowired
-    private StudentRepositoryI studentRepositoryI;
+    public Path create(String staffId, String password) throws Exception {
+        // 1️⃣ Lấy thông tin staff
+        Staff staff = staffRepository.findByStaffCode(staffId);
+        if (staff == null) {
+            throw new ResourceNotFoundEx("Staff not found with ID: " + staffId);
+        } else{
+        // 2️⃣ Sinh keystore base64 bằng RSA (self-signed)
+        KeyUtil keyUtil = new KeyUtil();
+    
+        String pkcs12Base64 = keyUtil.generatePKCS12Base64(
+                staff.getStaffCode(),
+                password.toCharArray(),
+                staff
+        );
 
-    public Certificate create(String studentId, String password) throws Exception {
-        Student student = studentRepositoryI.findByStudentCode(studentId).orElseThrow(() -> new ResourceNotFoundEx("Student not found"));
+        //  Giải Base64 -> bytes
+        byte[] p12Bytes = Base64.getDecoder().decode(pkcs12Base64);
 
-        String pkcs12Base64 = KeyUtil.generatePKCS12Base64(student.getStudentCode(), password.toCharArray(), student);
-        Map<String, Object> infoMap = getCertificateInfoFromBase64(pkcs12Base64, student.getStudentCode(), password.toCharArray());
-        Certificate certificate = Certificate.builder()
-                .certId("123456")
-                .templateId("123")
-                .issued_at(infoMap.get("issuer").toString())
-                 .expire_at(infoMap.get("notAfter").toString())
-                 .serial_no(infoMap.get("serialNumber").toString())
-                .alias(student.getStudentCode())
-                .password(password)
-                .studentId(studentId)
-                 .certificate(pkcs12Base64)
-                .build();
-        return certificate;
+        //  Tạo thư mục keycert (nếu chưa có)
+        Path keycertDir = Path.of("keycert");
+        if (!Files.exists(keycertDir)) {
+            Files.createDirectories(keycertDir);
+        }
+
+        //  Đặt tên file (VD: STAFFCODE_YYYYMMDDHHMMSS.p12)
+        String filename = String.format("%s_%d.p12", staff.getStaffCode(), System.currentTimeMillis());
+        Path filePath = keycertDir.resolve(filename);
+
+        //  Ghi file ra thư mục
+        Files.write(filePath, p12Bytes);
+
+        //  (Tùy chọn) trích xuất thông tin để log hoặc lưu DB
+        Map<String, Object> infoMap = getCertificateInfoFromBase64(pkcs12Base64, staff.getStaffCode(), password.toCharArray());
+
+        System.out.println("Certificate info:");
+        infoMap.forEach((k, v) -> System.out.println(k + ": " + v));
+        System.out.println("Keystore saved at: " + filePath.toAbsolutePath());
+        //convert publickey to base 64
+        String publicKeyBase64 = Base64.getEncoder().encodeToString(keyUtil.getPublicKey().getEncoded());
+        //luw vao db
+        saveNewPubKeyInfoWithUser(staff.getStaffCode(), publicKeyBase64, java.time.LocalDateTime.now().toString(), keyUtil.getCryptoType().toString());
+        // Trả về đường dẫn để controller có thể gửi file
+        System.out.println(keyUtil.getPublicKey().toString());
+        System.out.println(keyUtil.getPrivateKey().toString());
+        return filePath;
+        }
+         
     }
-
-    private  Map<String, Object> getCertificateInfoFromBase64(String base64P12, String alias, char[] password) throws Exception {
-        // 1. Decode Base64 -> byte[]
+    @Autowired
+    private UserKeyService userKeyService;
+    public void saveNewPubKeyInfoWithUser(String staffcode, String publickey, String createdAt, String CryptoType){
+        userKeyService.saveNewUserKey(staffcode, publickey, createdAt, CryptoType);
+    }
+    
+    private Map<String, Object> getCertificateInfoFromBase64(String base64P12, String alias, char[] password) throws Exception {
         byte[] p12Bytes = Base64.getDecoder().decode(base64P12);
-
-        // 2. Load PKCS12 keystore
         KeyStore pkcs12 = KeyStore.getInstance("PKCS12");
         pkcs12.load(new ByteArrayInputStream(p12Bytes), password);
 
-        // 3. Lấy certificate theo alias
         java.security.cert.Certificate cert = pkcs12.getCertificate(alias);
-        if (cert == null) {
-            throw new ResourceNotFoundEx("No certificate found with alias: " + alias);
-        }
+        if (cert == null) throw new ResourceNotFoundEx("No certificate found with alias: " + alias);
 
         X509Certificate x509 = (X509Certificate) cert;
-
-        // 4. Extract thông tin
         Map<String, Object> info = new HashMap<>();
         info.put("subject", x509.getSubjectX500Principal().getName());
         info.put("issuer", x509.getIssuerX500Principal().getName());
         info.put("serialNumber", x509.getSerialNumber().toString());
-        info.put("notBefore", x509.getNotBefore()); //Valid from
-        info.put("notAfter", x509.getNotAfter()); //Valid to
+        info.put("notBefore", x509.getNotBefore());
+        info.put("notAfter", x509.getNotAfter());
         info.put("signatureAlgorithm", x509.getSigAlgName());
         info.put("version", x509.getVersion());
-
         return info;
     }
 
+    
+
     /**
-     * Export .p12 ra file tạm để tải về
+     * Sign certificate with staff's private key
      */
-    public Path exportP12ToFile(String studentId) throws Exception {
-        com.example.demo.entity.Certificate certEntity = certRepo.findCertificateByStudentId(studentId)
+    public Certificate signCertificate(String certificateId, String staffId) throws Exception {
+        // Get certificate
+        Certificate cert = certRepo.findById(Long.parseLong(certificateId))
                 .orElseThrow(() -> new RuntimeException("Certificate not found"));
 
-        // Decode Base64
-        byte[] p12Bytes = Base64.getDecoder().decode(certEntity.getCertificate());
+        // Here we would implement the actual signing logic
+        // For now, just update the status to indicate it's signed
+        cert.setStatus("SIGNED");
+        return certRepo.save(cert);
+    }
 
-        // Tạo file tạm
-        Path tempFile = Files.createTempFile(studentId + "_cert", ".p12");
-        Files.write(tempFile, p12Bytes);
-        System.out.println(tempFile.toAbsolutePath());
+    /**
+     * Get all certificates with pagination
+     */
+    public Page<Certificate> getAllCertificatesPaged(Pageable pageable) {
+        return certRepo.findAll(pageable);
+    }
 
-        return tempFile;
+  
+
+    /**
+     * Get certificate expiration statistics
+     */
+    public Map<String, Object> getExpirationStats() {
+        List<Certificate> allCertificates = certRepo.findAll();
+        LocalDate now = LocalDate.now();
+
+        long expiringSoon = allCertificates.stream()
+                .filter(cert -> cert.getExpire_at() != null && !cert.getExpire_at().isEmpty())
+                .filter(cert -> {
+                    try {
+                        LocalDate expireDate = LocalDate.parse(cert.getExpire_at().substring(0, 10)); // Extract date part
+                        long daysUntilExpiry = ChronoUnit.DAYS.between(now, expireDate);
+                        return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .count();
+
+        long expired = allCertificates.stream()
+                .filter(cert -> cert.getExpire_at() != null && !cert.getExpire_at().isEmpty())
+                .filter(cert -> {
+                    try {
+                        LocalDate expireDate = LocalDate.parse(cert.getExpire_at().substring(0, 10)); // Extract date part
+                        return expireDate.isBefore(now);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .count();
+
+        long totalActive = allCertificates.stream()
+                .filter(cert -> "ACTIVE".equalsIgnoreCase(cert.getStatus()))
+                .count();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("expiringSoon", expiringSoon);
+        stats.put("expired", expired);
+        stats.put("totalActive", totalActive);
+
+        return stats;
     }
 }

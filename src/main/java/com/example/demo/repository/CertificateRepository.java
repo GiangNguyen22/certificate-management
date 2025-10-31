@@ -5,8 +5,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
+
 
 @Repository
-public interface CertificateRepository extends JpaRepository<Certificate, String> {
-    Optional<Certificate> findCertificateByStudentId(String studentId);
+public interface CertificateRepository extends JpaRepository<Certificate, Long> {
+    Optional<Certificate> findByStudentId(String studentId);
+    Optional<Certificate> findByCertId(String certId);
+    
+    List<Certificate> findByStatus(String status);
+
+
 }

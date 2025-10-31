@@ -23,14 +23,16 @@ public class Certificate {
     private String certId;
     private String templateId;
     private String studentId;
+    private String userSignedId;
     private String issued_at;
     private String expire_at;
     private String status;
     private String serial_no;   // vd: 2025_IT_01234
-    private String certificate; // Base64
-    private String alias; //ten dinh danh cho certificate, mac dinh cho la studentCode di
-    private String password; // password for certificate bao ve keystore pkcs12 va private key
+    // private String certificate; // Base64
+    // private String alias; //ten dinh danh cho certificate, mac dinh cho la studentCode di
+    // private String password; // password for certificate bao ve keystore pkcs12 va private key
     private String pdf_uri;
     private String pdf_sha256;
 
 }
+

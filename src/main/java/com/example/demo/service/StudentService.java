@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Student;
-import com.example.demo.entity.User;
 import com.example.demo.repository.StudentRepositoryI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,7 @@ public class StudentService{
         studentRepository.save(student);
     }
 
-    public Optional<Student> getStudent(String id){
+    public Optional<Student> getStudent(Long id){
         return studentRepository.findById(id);
     }
     // public Optional<Student> getStudentbyStudentCode(String studentCode){

@@ -17,8 +17,19 @@ public class UserPublicKeys {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String user_id;
-    private String public_key;
-    private String created_at;
+
+    @Column(name = "user_id")
+    private String userId;
+
+    @Lob
+    @Column(name = "public_key", columnDefinition = "TEXT", nullable = false)
+    private String publicKey;
+
+    @Column(name = "created_at")
+    private String createdAt;
+
+    @Column(name = "cryptography_type")
+    private String cryptographyType;
 }
 
+    
