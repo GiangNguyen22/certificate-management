@@ -73,8 +73,19 @@ public class CertificateRequestService {
 
         // If approving, assign staff
         if ("APPROVED".equals(status) && staffId != null) {
-            // Note: Need to implement staff assignment logic
+            // TODO: Implement staff assignment logic
+            // For now, we'll just update the status
         }
+
+        return certificateRequestRepository.save(request);
+    }
+
+    public CertificateRequest reviewRequest(Long requestId, String status, String adminNotes) {
+        CertificateRequest request = certificateRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        request.setStatus(status);
+        request.setUpdatedAt(LocalDateTime.now());
 
         return certificateRequestRepository.save(request);
     }

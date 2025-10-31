@@ -111,6 +111,29 @@ public class CertificateRequestController {
         }
     }
 
+    @PutMapping("/{id}/review")
+    public ResponseEntity<?> reviewRequest(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> reviewData) {
+        try {
+            String status = (String) reviewData.get("status");
+            String adminNotes = (String) reviewData.get("adminNotes");
+
+            CertificateRequest updatedRequest = certificateRequestService.updateRequestStatus(id, status, null);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", updatedRequest.getId());
+            response.put("status", updatedRequest.getStatus());
+            response.put("message", "Request reviewed successfully");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "Failed to review request: " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
     // Helper method - should be implemented properly
     private Long getStudentIdFromUsername(String username) {
         // Find student by username

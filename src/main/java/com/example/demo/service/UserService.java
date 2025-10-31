@@ -7,6 +7,7 @@ import com.example.demo.repository.StaffRepository;
 import com.example.demo.repository.StudentRepositoryI;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -25,6 +26,9 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public Staff createStaff(Staff staff) throws Exception {
         // Check if username already exists (simplified check)
         List<User> existingUsers = userRepository.findAll();
@@ -33,6 +37,11 @@ public class UserService {
 
         if (usernameExists) {
             throw new Exception("Username already exists");
+        }
+
+        // Encode password if not already encoded
+        if (staff.getPassword() != null && !staff.getPassword().startsWith("$2a$")) {
+            staff.setPassword(passwordEncoder.encode(staff.getPassword()));
         }
 
         // Set default values

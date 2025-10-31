@@ -3,6 +3,7 @@ package com.example.demo.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.entity.Certificate;
 import com.example.demo.entity.Student;
 import com.example.demo.service.fillCertificate;
 import com.example.demo.service.interfaces.CertService;
@@ -15,6 +16,9 @@ public class CertServiceImpl implements CertService {
 
     @Autowired
     private fillCertificate fillCert;
+
+    @Autowired
+    private com.example.demo.repository.CertificateRepository certRepo;
 
     @Override
     public String createCertificateForStudent(String studentCode) throws Exception {
@@ -34,7 +38,23 @@ public class CertServiceImpl implements CertService {
 
         // generate the certificate PDF (path returned) — keep return type void per interface
         String pdfPath = fillCert.generateCertificate(studentCode);
-        // TODO: persist certificate record or log the generated path
+        // Persist certificate record to database
+        Certificate certificate = new Certificate();
+        certificate.setCertId(studentCode);
+        certificate.setTemplateId("CERT_001"); // Default template
+        certificate.setUserId(student.getId());
+        certificate.setIssued_at(java.time.LocalDate.now().toString());
+        certificate.setExpire_at(java.time.LocalDate.now().plusYears(1).toString()); // 1 year validity
+        certificate.setStatus("ACTIVE");
+        certificate.setSerial_no("CERT_" + System.currentTimeMillis());
+        certificate.setAlias(studentCode);
+        certificate.setPassword("default_password"); // Should be generated securely
+        certificate.setPdf_uri(pdfPath);
+        certificate.setPdf_sha256(""); // Calculate SHA256 if needed
+
+        // Save to database
+        certRepo.save(certificate);
+
         return pdfPath;
     }
 

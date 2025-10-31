@@ -70,7 +70,12 @@ public class CertificateController {
                     .header("Content-Disposition", "inline; filename=\"certificate_" + id + ".pdf\"")
                     .body(pdfBytes);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            // Return a simple error message as text
+            String errorMessage = "Certificate PDF not available. Error: " + e.getMessage();
+            byte[] errorBytes = errorMessage.getBytes();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .header("Content-Type", "text/plain")
+                    .body(errorBytes);
         }
     }
 
