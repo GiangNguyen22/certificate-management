@@ -12,7 +12,9 @@ import java.util.List;
 @Repository
 public interface CertificateRequestRepository extends JpaRepository<CertificateRequest, Long> {
 
-    List<CertificateRequest> findByStudentRequestId(String studentId);
+    @Query("SELECT cr FROM CertificateRequest cr WHERE cr.id = ?1")
+    List<CertificateRequest> findByStudentRequestId(Long studentRequestId);
+
     List<CertificateRequest> findByStatus(String status);
     // @Query("SELECT cr FROM CertificateRequest cr WHERE cr.student.id = :studentId ORDER BY cr.createdAt DESC")
     // List<CertificateRequest> findByStudentId(@Param("studentId") Long studentId);

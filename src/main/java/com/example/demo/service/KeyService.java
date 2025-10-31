@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import com.example.demo.entity.Staff;
+import com.example.demo.entity.Student;
 import com.example.demo.entity.User;
 import com.example.demo.entity.UserPublicKeys;
 import com.example.demo.repository.UserPublicKeysRepository;
@@ -46,7 +48,7 @@ public class KeyService {
 
         // Save to database
         UserPublicKeys keyEntity = new UserPublicKeys();
-        keyEntity.setUserId(userId);
+        keyEntity.setStaff((Staff) user);
         keyEntity.setPublicKey(publicKeyBase64);
         keyEntity.setCreatedAt(java.time.LocalDateTime.now().toString());
 
@@ -85,7 +87,7 @@ public class KeyService {
         UserPublicKeys key = keyRepository.findById(keyId)
                 .orElseThrow(() -> new RuntimeException("Key not found"));
 
-        User user = userRepository.findById(Long.parseLong(key.getUserId()))
+        User user = userRepository.findById(key.getStaff().getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String fileName = "key_" + user.getUsername() + "_" + keyId + ".crt";

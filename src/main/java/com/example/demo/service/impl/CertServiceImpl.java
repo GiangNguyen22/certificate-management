@@ -47,7 +47,7 @@ public class CertServiceImpl implements CertService {
         Certificate cert = new Certificate();
         cert.setCertId(certId);
         cert.setTemplateId(templateId);
-        cert.setStudentId(studentId);
+        cert.setStudent(studentService.getStudentByStudentCode(studentId));
         cert.setUserSignedId(userSignedId);
         cert.setIssued_at(issuedAt);
         cert.setExpire_at(expireAt);

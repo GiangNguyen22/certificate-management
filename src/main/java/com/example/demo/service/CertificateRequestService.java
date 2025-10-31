@@ -5,6 +5,7 @@ import com.example.demo.entity.Student;
 import com.example.demo.repository.CertificateRequestRepository;
 import com.example.demo.repository.StudentRepositoryI;
 
+import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +26,11 @@ public class CertificateRequestService {
 
     private final StudentRepositoryI studentRepository;
 
-    public String createRequest(String templateId, String requestCode, String type, String status, String studentId) {
+    public String createRequest(String templateId, String requestCode, String type, String status, String studentCode) {
 
         CertificateRequest request = new CertificateRequest();
+
+        Student student = studentRepository.findByStudentCode(studentCode).orElseThrow(() -> new RuntimeException("Student not found"));
 
         request.setTemplateId(templateId);
         request.setRequestCode(requestCode);
@@ -35,7 +38,7 @@ public class CertificateRequestService {
         request.setCreatedAt(LocalDateTime.now());
         request.setUpdatedAt(LocalDateTime.now());
         request.setStatus(status);
-        request.setStudentRequestId(studentId);
+        request.setStudent(student);
         certificateRequestRepository.save(request);
         return requestCode;
     }
@@ -47,8 +50,8 @@ public class CertificateRequestService {
         return certificateRequestRepository.findAll(pageable);
     }
 
-    public List<CertificateRequest> getRequestsByStudent(String studentId) {
-        return certificateRequestRepository.findByStudentRequestId(studentId);
+    public List<CertificateRequest> getRequestsByStudent(Long studentRequestId) {
+        return certificateRequestRepository.findByStudentRequestId(studentRequestId);
     }
 
     public List<CertificateRequest> getPendingRequests() {

@@ -1,12 +1,8 @@
 package com.example.demo.entity;
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -41,8 +37,9 @@ public class CertificateRequest {
     @Column(name = "status", nullable = false)
     private String status;
 
-
-    @Column(name = "student_id", nullable = false)
-    private String studentRequestId;
+    @ManyToOne
+    @JoinColumn(name = "student_id", nullable = false)
+    @JsonIgnore
+    private Student student;
 
 }

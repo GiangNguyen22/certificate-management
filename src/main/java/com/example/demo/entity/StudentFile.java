@@ -25,4 +25,7 @@ public class StudentFile {
     private boolean signed;
     @Column(name = "issue_at")
     private LocalDateTime issueAt;
+    @OneToOne
+    @JoinColumn(name = "student_request_id", referencedColumnName = "id")
+    private StudentRequest studentRequest;
 }

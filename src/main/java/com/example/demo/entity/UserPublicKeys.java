@@ -18,8 +18,9 @@ public class UserPublicKeys {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id")
-    private String userId;
+    @OneToOne
+    @JoinColumn(name = "staff_id", referencedColumnName = "id")
+    private Staff staff;
 
     @Lob
     @Column(name = "public_key", columnDefinition = "TEXT", nullable = false)

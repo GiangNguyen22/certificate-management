@@ -29,4 +29,9 @@ public class StudentRequest {
     @JsonIgnore
     private Student student;
 
+    @ManyToOne
+    @JoinColumn(name = "request_type_id")
+    private RequestType requestType;
+
+
 }

@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.service.spi.InjectService;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -19,4 +21,7 @@ public class RequestType {
     private int id;
     private String name;
     private String description;
+
+    @OneToMany(mappedBy = "requestType", fetch = FetchType.LAZY)
+    private List<StudentRequest> studentRequests;
 }

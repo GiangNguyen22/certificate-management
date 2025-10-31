@@ -1,8 +1,6 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +18,11 @@ public class Staff extends User {
     @Column(name="staff_code", unique = true, nullable = false)
     private String staffCode;
     private String position;
+    @Column(name = "major_name")
     private String majorName;
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
     
 }
 

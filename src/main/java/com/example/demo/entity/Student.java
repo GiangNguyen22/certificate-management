@@ -15,7 +15,6 @@ import java.util.Set;
 @Data
 @Builder
 @Entity
-@PrimaryKeyJoinColumn(name = "user_id") // chỉ cần khi dùng JOINED
 
 public class Student extends User {
 
@@ -37,6 +36,12 @@ public class Student extends User {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
     private List<StudentRequest> requests;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
+    private List<CertificateRequest> certificateRequests;
+
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
+    private List<Certificate> certificates;
 
     // Use Lombok-generated constructors; removed manual constructor that used UUID
 }
