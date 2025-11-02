@@ -33,7 +33,9 @@ public class ProcessSignUtil {
         PrivateKey privateKey = (PrivateKey) keystore.getKey(alias, pwdArray);
         X509Certificate certificate = (X509Certificate) keystore.getCertificate(alias);
         String signature = PdfSignerUtil.signDocumentBase64(hashOfPdf, privateKey);
-        String pathEmbeddedSign = PdfSignerUtil.embedSignatureInPdf(rawPdfPath, studentCode, signature, keystore.getCertificateChain(alias));
+        System.out.println("✅ Document signed successfully. Signature (Base64): " + signature);
+        String pathDocSigned = PdfSignerUtil.signInternalSignatureInPdf(rawPdfPath, studentCode, privateKey, keystore.getCertificateChain(alias));
+        // String pathDocSigned = PdfSignerUtil.embedSignatureInPdf(rawPdfPath, studentCode, signature, keystore.getCertificateChain(alias));
        String certId = UUID.randomUUID().toString() + "-" + studentCode;
        String templateId = "template-001"; // Example template ID
          String studentId = studentCode; // Assuming studentCode is used as studentId
@@ -42,7 +44,7 @@ public class ProcessSignUtil {
          String status = "ISSUED";
         String serialNo = certificate.getSerialNumber().toString();
 
-        certService.saveCertificateRecord(certId, templateId, studentId,staffCode, issuedAt, expireAt, status, serialNo, pathEmbeddedSign, hashOfPdf);
-        return pathEmbeddedSign;
+        certService.saveCertificateRecord(certId, templateId, studentId,staffCode, issuedAt, expireAt, status, serialNo, pathDocSigned, hashOfPdf);
+        return pathDocSigned;
     }
 }

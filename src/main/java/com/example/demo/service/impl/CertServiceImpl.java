@@ -2,6 +2,7 @@ package com.example.demo.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.entity.Certificate;
 import com.example.demo.entity.Student;
@@ -60,6 +61,14 @@ public class CertServiceImpl implements CertService {
         
 
         return certrepo.save(cert);
+    }
+
+    @Override
+    public Boolean verifyDiploma(MultipartFile diplomaFile, String studentCode) throws Exception {
+        // Implement diploma verification logic here
+        // This could involve checking the file's integrity, matching it against stored records, etc.
+
+        return true;
     }
 }
 

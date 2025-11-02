@@ -44,7 +44,9 @@ public class SecurityConfig {
                     "/swagger-resources/**",
                     "/webjars/**",
                     "/configuration/ui",
-                    "/configuration/security"
+                    "/configuration/security",
+                    "/api/test-service/**",
+                    "/api/v1/requests/**/verifydiploma"
                 ).permitAll()
                 .requestMatchers("/api/v1/requests/**",
                     "/api/v1/requests/*/signrequest",

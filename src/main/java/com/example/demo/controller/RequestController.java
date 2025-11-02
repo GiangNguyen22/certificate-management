@@ -5,14 +5,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.dto.VerifyResult;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.entity.User;
+import com.example.demo.repository.UserPubKeysRepository;
+import com.example.demo.utils.DigitalSignatureUtil;
 import com.example.demo.utils.ProcessSignUtil;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,29 +36,30 @@ public class RequestController {
     public RequestController(CertificateRequestService certificateRequestService) {
         this.certificateRequestService = certificateRequestService;
     }
+    //Giam doc thuc hien ky yeu cau van bang cua hoc sinh
     @PostMapping("/sign")
     public ResponseEntity<?> signRequest(@RequestParam String studentcode, @RequestParam String staffcode, @RequestParam MultipartFile p12File,@RequestParam String alias, @RequestParam String keystorepass) {
         try{
 
             String pathP12 = TempFileUtil.saveTempFile(p12File);
+            //Thuc hien tao Van Bang va ky so thoong qua phuong thuc completeSign
             String signedPath = ProcessSignUtil.completeSign(studentcode, staffcode, pathP12, keystorepass, alias);
-            Map<String, String> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("signedFilePath", signedPath);
-            System.out.println("✅ Request signed successfully. Signed file path: " + signedPath);
+            Map<String, String> data = new HashMap<>();
+            data.put("signedFilePath", signedPath);
+            ApiResponse response = new ApiResponse(true, "SUCCESS", "Request signed successfully", data);
+
             return ResponseEntity.ok(response);
-
-
             
     
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Error signing request: " + e.getMessage());
-            return ResponseEntity.status(500).body("Error signing request: " + e.getMessage());
+            ApiResponse response = new ApiResponse(false, "ERROR", "Error signing request: " + e.getMessage(), null);
+            return ResponseEntity.status(500).body(response);
         }
         
           
     }
+    //Hoc sinh tao yeu cau lay Van Bang gui cho Giam Doc ky
     @PostMapping("/{studentcode}/signrequest")
         public ResponseEntity<?> signRequest(@PathVariable("studentcode") String studentCode, @AuthenticationPrincipal User user, @RequestBody(required = false) Map<String, String> body) {
             // Kiểm tra body
@@ -85,4 +90,36 @@ public class RequestController {
         } 
 
         }
+    // @ostMapping("/{studentcode}/veryfydiploma")}")
+    //     public ResponseEntity<?> verifyDiploma(@PathVariable("studentcode") String studentCode, @RequestParam MultipartFile diplomaFile) {
+    //         try {
+    //             Boolean isValid = certificateRequestService.verifyDiploma(diplomaFile, studentCode);
+    //             Map<String, Object> response = new HashMap<>();
+    //             response.put("studentCode", studentCode);
+    //             response.put("isValid", isValid);
+
+    //             return ResponseEntity.ok(response);
+    //         } catch (Exception e) {
+    //             e.printStackTrace();
+    //             return ResponseEntity.status(500).body("Error verifying diploma: " + e.getMessage());
+    //         }
+    //     }
+    @Autowired
+    UserPubKeysRepository userPKRepo;
+    @PostMapping("/{studentcode}/verifydiploma")
+    public ResponseEntity<?> verifyDiploma(@PathVariable("studentcode") String studentCode, @RequestParam MultipartFile diplomaFile) throws Exception {
+        String pathtempFile = TempFileUtil.saveTempFile(diplomaFile);
+        try {
+            VerifyResult verifyResult = DigitalSignatureUtil.verifySignature(pathtempFile, userPKRepo);
+            ApiResponse response = new ApiResponse(true, "SUCCESS", "Certificate verify successfully", verifyResult);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            ApiResponse response = new ApiResponse(false, "ERROR", "Error verifying diploma: " ,null);
+            return ResponseEntity.status(500).body(response);
+        } finally {
+            TempFileUtil.deleteTempFile(pathtempFile);
+        }
     }
+
+}

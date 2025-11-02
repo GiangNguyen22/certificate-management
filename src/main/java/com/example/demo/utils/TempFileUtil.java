@@ -71,4 +71,16 @@ public static void ensureDirectoryExists(String directoryPath) {
         directory.mkdirs();
     }
 }
+// Delete file in tmp folder
+public static void deleteTempFile(String filePath) {
+    if(filePath == null || filePath.isBlank()){ return;}
+    else{
+        File file = new File(filePath);
+        if(file.exists()){
+            file.delete();
+        }else {
+            return;        }
+
+    }
+}
 }

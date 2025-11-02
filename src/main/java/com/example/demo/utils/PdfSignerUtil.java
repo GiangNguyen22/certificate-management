@@ -1,14 +1,17 @@
 package com.example.demo.utils;
 
+
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.StampingProperties;
 import com.itextpdf.signatures.*;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+
 import java.io.*;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.util.Base64;
+
 
 public class PdfSignerUtil {
 
@@ -37,7 +40,7 @@ public class PdfSignerUtil {
      */
     public static String signDocumentBase64(String hashBase64, PrivateKey privateKey) throws Exception {
         byte[] hashBytes = Base64.getDecoder().decode(hashBase64);
-        Signature signature = Signature.getInstance("SHA256withRSA");
+        Signature signature = Signature.getInstance("NONEwithRSA");
         signature.initSign(privateKey);
         signature.update(hashBytes);
         byte[] digitalSignature = signature.sign();
@@ -68,52 +71,79 @@ public class PdfSignerUtil {
     /**
      * Nhúng chữ ký vào file PDF (dạng detached CMS signature).
      */
-    public static String embedSignatureInPdf(String srcPdfPath,String studentCode,
-                                             String signatureBase64, Certificate[] chain) throws Exception {
-        byte[] signatureBytes = Base64.getDecoder().decode(signatureBase64);
+    // public static String embedSignatureInPdf(String srcPdfPath,String studentCode,
+    //                                          String signatureBase64, Certificate[] chain) throws Exception {
+    //     byte[] signatureBytes = Base64.getDecoder().decode(signatureBase64);
+    //     File outDir = new File("certificates_signed");
+    //     if (!outDir.exists()) outDir.mkdirs();
+    //     String outputPath = outDir.getAbsolutePath() + "/" + studentCode + "_certificate.pdf";
+    //     // Mở file PDF gốc và tạo output stream cho file đích
+    //     try (PdfReader reader = new PdfReader(srcPdfPath);
+    //          FileOutputStream os = new FileOutputStream(outputPath)) {
+
+    //         // Tạo đối tượng PdfSigner với chế độ Append Mode (không ghi đè lên nội dung cũ)
+    //         PdfSigner signer = new PdfSigner(reader, os, new StampingProperties().useAppendMode());
+
+    //         // Định nghĩa cơ chế ký ngoài (external signature)
+    //         IExternalSignature externalSig = new IExternalSignature() {
+    //             @Override
+    //             public String getHashAlgorithm() {
+    //                 return "SHA-256";
+    //             }
+
+    //             @Override
+    //             public String getEncryptionAlgorithm() {
+    //                 return "RSA";
+    //             }
+
+    //             @Override
+    //             public byte[] sign(byte[] message) {
+    //                 return signatureBytes; // Dữ liệu chữ ký đã có sẵn
+    //             }
+    //         };
+
+    //         IExternalDigest digest = new BouncyCastleDigest();
+
+    //         // Thực hiện ký detached (CMS)
+    //         signer.signDetached(
+    //                 digest,
+    //                 externalSig,
+    //                 chain,
+    //                 null,
+    //                 null,
+    //                 null,
+    //                 0,
+    //                 PdfSigner.CryptoStandard.CMS
+    //         );
+    //     }
+
+    //     return outputPath;
+    // }
+
+    static String signInternalSignatureInPdf(String srcPdfPath,String studentCode,
+                                             PrivateKey privateKey, Certificate[] chain) throws Exception {
+        PdfReader reader = new PdfReader(srcPdfPath);
         File outDir = new File("certificates_signed");
         if (!outDir.exists()) outDir.mkdirs();
         String outputPath = outDir.getAbsolutePath() + "/" + studentCode + "_certificate.pdf";
-        // Mở file PDF gốc và tạo output stream cho file đích
-        try (PdfReader reader = new PdfReader(srcPdfPath);
-             FileOutputStream os = new FileOutputStream(outputPath)) {
-
-            // Tạo đối tượng PdfSigner với chế độ Append Mode (không ghi đè lên nội dung cũ)
-            PdfSigner signer = new PdfSigner(reader, os, new StampingProperties().useAppendMode());
-
-            // Định nghĩa cơ chế ký ngoài (external signature)
-            IExternalSignature externalSig = new IExternalSignature() {
-                @Override
-                public String getHashAlgorithm() {
-                    return "SHA-256";
-                }
-
-                @Override
-                public String getEncryptionAlgorithm() {
-                    return "RSA";
-                }
-
-                @Override
-                public byte[] sign(byte[] message) {
-                    return signatureBytes; // Dữ liệu chữ ký đã có sẵn
-                }
-            };
-
-            IExternalDigest digest = new BouncyCastleDigest();
-
-            // Thực hiện ký detached (CMS)
-            signer.signDetached(
-                    digest,
-                    externalSig,
-                    chain,
-                    null,
-                    null,
-                    null,
-                    0,
-                    PdfSigner.CryptoStandard.CMS
-            );
-        }
-
+        FileOutputStream os = new FileOutputStream(outputPath);
+        PdfSigner signer = new PdfSigner(reader, os, new StampingProperties().useAppendMode());
+        PdfSignatureAppearance appearance = signer.getSignatureAppearance()
+                .setReason("Certificate Issuance")
+                .setLocation("KMA University")
+                .setReuseAppearance(false);
+        signer.setFieldName("Director_Signature");
+        IExternalDigest digest = new BouncyCastleDigest();
+    IExternalSignature signature = new PrivateKeySignature(privateKey, DigestAlgorithms.SHA256, "BC");
+    signer.signDetached(
+            digest,
+            signature,
+            chain,
+            null, null, null,
+            0,
+            PdfSigner.CryptoStandard.CMS
+    );
+        os.close();
         return outputPath;
     }
 
@@ -143,4 +173,5 @@ public class PdfSignerUtil {
             return (PrivateKey) keystore.getKey(alias, keyPassword.toCharArray());
         }
     }
+
 }
