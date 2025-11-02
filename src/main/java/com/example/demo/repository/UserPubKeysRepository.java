@@ -8,7 +8,7 @@ import java.util.Optional;
 @Repository
 public interface UserPubKeysRepository extends JpaRepository<UserPublicKeys, Long> {
     
-    Optional<UserPublicKeys> findByUserId(String userId);
+    Optional<UserPublicKeys> findByUserId(Long userId);
 
     
     

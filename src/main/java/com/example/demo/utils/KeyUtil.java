@@ -9,8 +9,10 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.Certificate;
@@ -188,5 +190,9 @@ public class KeyUtil {
         }
         if (cert == null) throw new IllegalArgumentException("No certificate found in keystore");
         return (X509Certificate) cert;
+    }
+
+    public InputStream getFileInputStream(String p12File) {
+        throw new UnsupportedOperationException("Unimplemented method 'getFileInputStream'");
     }
 }

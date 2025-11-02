@@ -1,6 +1,4 @@
 package com.example.demo.config;
-
-import com.example.demo.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,9 +22,6 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     @Autowired
-    private CustomUserDetailsService userDetailsService;
-
-    @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -36,11 +31,25 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
+                            .requestMatchers(
+                    "/swagger-ui.html",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**",
+                    "/api-docs/**",
+                    "/swagger-resources/**",
+                    "/webjars/**",
+                    "/configuration/ui",
+                    "/configuration/security"
+                ).permitAll()
+                .requestMatchers("/api/v1/requests/**",
+                    "/api/v1/requests/*/signrequest"
+                    ).permitAll()
+                .requestMatchers("/api/keys/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/certificates/**").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers("/api/certificates/**").authenticated()
                 .requestMatchers("/api/certificate-requests/**").authenticated()
-                .requestMatchers("/api/keys/**").hasRole("ADMIN")
-                .requestMatchers("/api/users/**").hasRole("ADMIN")
+                .requestMatchers("/api/users/profile").authenticated()
+                    .requestMatchers("/api/users/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

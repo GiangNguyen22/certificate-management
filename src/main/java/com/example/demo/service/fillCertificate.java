@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
@@ -34,7 +33,6 @@ public class fillCertificate {
         Student student = studentOpt.get();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String dobFormatted = student.getDob().format(formatter);
         String issuedDate = LocalDate.now().format(formatter);
 
         File outDir = new File("certificates");
@@ -71,16 +69,16 @@ public class fillCertificate {
 
                         cs.setFont(font, 14);
 
-                        // Name
+                        // Name - Get from User entity (parent class)
                         cs.beginText();
                         cs.newLineAtOffset(330, 300);
                         cs.showText(student.getFullName());
                         cs.endText();
 
-                        // Date of Birth
+                        // Date of Birth - Get from User entity (parent class)
                         cs.beginText();
                         cs.newLineAtOffset(330, 278);
-                        cs.showText(student.getDob().format(formatter));
+                        cs.showText(student.getDob() != null ? student.getDob().format(formatter) : "N/A");
                         cs.endText();
 
                         // Student Code
@@ -101,8 +99,10 @@ public class fillCertificate {
                         cs.showText(student.getStartYear());
                         cs.endText();
 
-                        // Classification
-                        String classification = "Giỏi";
+                        // Classification - Use xepLoai from database
+                        String classification = student.getXepLoai() != null && !student.getXepLoai().isEmpty()
+                            ? student.getXepLoai()
+                            : "Giỏi"; // Default fallback
                         cs.beginText();
                         cs.newLineAtOffset(330, 223);
                         cs.showText(classification);

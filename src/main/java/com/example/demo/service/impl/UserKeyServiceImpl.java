@@ -11,13 +11,13 @@ public class UserKeyServiceImpl implements UserKeyService{
     @Autowired
     private UserPubKeysRepository userPubKeysRepository;
     @Override
-    public UserPublicKeys saveNewUserKey(String userId, String publicKey, String createdAt, String CryptoType) {
+    public UserPublicKeys saveNewUserKey(Long userId, String publicKey, String createdAt, String CryptoType) {
         UserPublicKeys newUserPublicKeys = new UserPublicKeys();
-        newUserPublicKeys.setUserId(userId);
+        // Note: User relationship should be set by the caller if needed
         newUserPublicKeys.setPublicKey(publicKey);
         newUserPublicKeys.setCreatedAt(createdAt);
         newUserPublicKeys.setCryptographyType(CryptoType);
-        
+
         return userPubKeysRepository.save(newUserPublicKeys);
     }
 }

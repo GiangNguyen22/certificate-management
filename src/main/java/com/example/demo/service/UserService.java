@@ -6,6 +6,7 @@ import com.example.demo.entity.User;
 import com.example.demo.repository.StaffRepository;
 import com.example.demo.repository.StudentRepositoryI;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.service.interfaces.p12Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private p12Service p12Service;
 
     public Staff createStaff(Staff staff) throws Exception {
         // Check if username already exists (simplified check)
@@ -66,50 +70,55 @@ public class UserService {
                 .toList();
     }
 
-    public Map<String, Object> getUserProfile(String username) {
-        // Try to find as student first
+   public Map<String, Object> getUserProfile(String username) {
+        // Normalize username search
+        username = username.trim();
+
+        // --- Check student ---
         Student student = studentRepository.findByUsername(username).orElse(null);
         if (student != null) {
             Map<String, Object> profile = new HashMap<>();
             profile.put("id", student.getId());
             profile.put("username", student.getUsername());
-            profile.put("name", student.getFullName());
-            profile.put("email", student.getEmail());
+            profile.put("name", student.getFullName() != null ? student.getFullName() : "");
+            profile.put("email", student.getEmail() != null ? student.getEmail() : "");
             profile.put("phone", null); // Students may not have phone
             profile.put("role", "STUDENT");
-            profile.put("studentCode", student.getStudentCode());
-            profile.put("major", student.getMajorName());
+            profile.put("studentCode", student.getStudentCode() != null ? student.getStudentCode() : "");
+            profile.put("major", student.getMajorName() != null ? student.getMajorName() : "");
+            profile.put("startYear", student.getStartYear() != null ? student.getStartYear() : "");
+            profile.put("xepLoai", student.getXepLoai() != null ? student.getXepLoai() : "");
             profile.put("createdAt", null);
             profile.put("lastLogin", null);
             return profile;
         }
 
-        // Try to find as staff
+        // --- Check staff ---
         Staff staff = staffRepository.findByUsername(username).orElse(null);
         if (staff != null) {
             Map<String, Object> profile = new HashMap<>();
             profile.put("id", staff.getId());
             profile.put("username", staff.getUsername());
-            profile.put("name", staff.getFullName());
-            profile.put("email", staff.getEmail());
-            profile.put("phone", staff.getPhone());
+            profile.put("name", staff.getFullName() != null ? staff.getFullName() : "");
+            profile.put("email", staff.getEmail() != null ? staff.getEmail() : "");
+            profile.put("phone", staff.getPhone() != null ? staff.getPhone() : "");
             profile.put("role", "STAFF");
-            profile.put("staffCode", staff.getStaffCode());
-            profile.put("department", "Department " + staff.getDepartmentId()); // Simplified
+            profile.put("staffCode", staff.getStaffCode() != null ? staff.getStaffCode() : "");
+            profile.put("department", staff.getDepartmentId() > 0 ? "Department " + staff.getDepartmentId() : "");
             profile.put("createdAt", null);
             profile.put("lastLogin", null);
             return profile;
         }
 
-        // Try to find as admin user
+        // --- Check admin ---
         User user = userRepository.findByUsername(username);
-        if (user != null) {
+        if (user != null && user.getRoles().stream().anyMatch(r -> "ADMIN".equals(r.getName()))) {
             Map<String, Object> profile = new HashMap<>();
             profile.put("id", user.getId());
             profile.put("username", user.getUsername());
-            profile.put("name", user.getFullName());
-            profile.put("email", user.getEmail());
-            profile.put("phone", user.getPhone());
+            profile.put("name", user.getFullName() != null ? user.getFullName() : "");
+            profile.put("email", user.getEmail() != null ? user.getEmail() : "");
+            profile.put("phone", user.getPhone() != null ? user.getPhone() : "");
             profile.put("role", "ADMIN");
             profile.put("createdAt", null);
             profile.put("lastLogin", null);
@@ -120,45 +129,36 @@ public class UserService {
     }
 
     public Map<String, Object> updateUserProfile(String username, Map<String, Object> profileData) {
-        // Try to find as student first
+        username = username.trim();
+
+        // --- Update student ---
         Student student = studentRepository.findByUsername(username).orElse(null);
         if (student != null) {
-            if (profileData.containsKey("name")) {
-                student.setFullName((String) profileData.get("name"));
-            }
-            if (profileData.containsKey("email")) {
-                student.setEmail((String) profileData.get("email"));
-            }
-            // Note: Students may not have phone field, so we skip it
+            if (profileData.containsKey("name")) student.setFullName((String) profileData.get("name"));
+            if (profileData.containsKey("email")) student.setEmail((String) profileData.get("email"));
+            if (profileData.containsKey("major")) student.setMajorName((String) profileData.get("major"));
+            if (profileData.containsKey("startYear")) student.setStartYear((String) profileData.get("startYear"));
+            if (profileData.containsKey("xepLoai")) student.setXepLoai((String) profileData.get("xepLoai"));
             studentRepository.save(student);
             return getUserProfile(username);
         }
 
-        // Try to find as staff
+        // --- Update staff ---
         Staff staff = staffRepository.findByUsername(username).orElse(null);
         if (staff != null) {
-            if (profileData.containsKey("name")) {
-                staff.setFullName((String) profileData.get("name"));
-            }
-            if (profileData.containsKey("email")) {
-                staff.setEmail((String) profileData.get("email"));
-            }
-            if (profileData.containsKey("phone")) {
-                staff.setPhone((String) profileData.get("phone"));
-            }
+            if (profileData.containsKey("name")) staff.setFullName((String) profileData.get("name"));
+            if (profileData.containsKey("email")) staff.setEmail((String) profileData.get("email"));
+            if (profileData.containsKey("phone")) staff.setPhone((String) profileData.get("phone"));
             staffRepository.save(staff);
             return getUserProfile(username);
         }
 
-        // Try to find as admin user
+        // --- Update admin ---
         User user = userRepository.findByUsername(username);
-        if (user != null) {
-            if (profileData.containsKey("name")) {
-                user.setFullName((String) profileData.get("name"));
-            }
-            if (profileData.containsKey("email")) {
-                user.setEmail((String) profileData.get("email"));
-            }
+        if (user != null && user.getRoles().stream().anyMatch(r -> "ADMIN".equals(r.getName()))) {
+            if (profileData.containsKey("name")) user.setFullName((String) profileData.get("name"));
+            if (profileData.containsKey("email")) user.setEmail((String) profileData.get("email"));
+            if (profileData.containsKey("phone")) user.setPhone((String) profileData.get("phone"));
             userRepository.save(user);
             return getUserProfile(username);
         }
@@ -166,12 +166,27 @@ public class UserService {
         throw new RuntimeException("User not found: " + username);
     }
 
+    // ================= Stats (optional) =================
     public Map<String, Object> getUserStats() {
         Map<String, Object> stats = new HashMap<>();
-        stats.put("totalUsers", userRepository.count() + staffRepository.count() + studentRepository.count());
-        stats.put("totalStudents", studentRepository.count());
-        stats.put("totalStaff", staffRepository.count());
-        stats.put("totalAdmins", userRepository.count());
+
+        long totalStaff = staffRepository.findAll().stream().filter(Staff::isStatus).count();
+        long totalStudents = studentRepository.findAll().stream()
+                .filter(s -> s.getStatusSV() != null && ("ACTIVE".equalsIgnoreCase(s.getStatusSV()) || "GRADUATED".equalsIgnoreCase(s.getStatusSV())))
+                .count();
+        long totalAdmins = userRepository.findAll().stream()
+                .filter(u -> u.getRoles() != null && u.getRoles().stream().anyMatch(r -> "ADMIN".equals(r.getName())))
+                .count();
+
+        stats.put("totalUsers", totalAdmins + totalStaff + totalStudents);
+        stats.put("totalStudents", totalStudents);
+        stats.put("totalStaff", totalStaff);
+        stats.put("totalAdmins", totalAdmins);
         return stats;
     }
+
+    public p12Service getP12Service() {
+        return p12Service;
+    }
+
 }

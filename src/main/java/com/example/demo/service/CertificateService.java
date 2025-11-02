@@ -24,7 +24,6 @@ import java.util.Map;
 import com.example.demo.entity.Staff;
 import com.example.demo.entity.Certificate;
 
-import com.example.demo.service.interfaces.UserKeyService;
 
 @Service
 public class CertificateService {
@@ -36,59 +35,6 @@ public class CertificateService {
     @Autowired
     private CertificateRepository certRepo;
 
-    public Path create(String staffId, String password) throws Exception {
-        // 1️⃣ Lấy thông tin staff
-        Staff staff = staffRepository.findByStaffCode(staffId);
-        if (staff == null) {
-            throw new ResourceNotFoundEx("Staff not found with ID: " + staffId);
-        } else{
-        // 2️⃣ Sinh keystore base64 bằng RSA (self-signed)
-        KeyUtil keyUtil = new KeyUtil();
-    
-        String pkcs12Base64 = keyUtil.generatePKCS12Base64(
-                staff.getStaffCode(),
-                password.toCharArray(),
-                staff
-        );
-
-        //  Giải Base64 -> bytes
-        byte[] p12Bytes = Base64.getDecoder().decode(pkcs12Base64);
-
-        //  Tạo thư mục keycert (nếu chưa có)
-        Path keycertDir = Path.of("keycert");
-        if (!Files.exists(keycertDir)) {
-            Files.createDirectories(keycertDir);
-        }
-
-        //  Đặt tên file (VD: STAFFCODE_YYYYMMDDHHMMSS.p12)
-        String filename = String.format("%s_%d.p12", staff.getStaffCode(), System.currentTimeMillis());
-        Path filePath = keycertDir.resolve(filename);
-
-        //  Ghi file ra thư mục
-        Files.write(filePath, p12Bytes);
-
-        //  (Tùy chọn) trích xuất thông tin để log hoặc lưu DB
-        Map<String, Object> infoMap = getCertificateInfoFromBase64(pkcs12Base64, staff.getStaffCode(), password.toCharArray());
-
-        System.out.println("Certificate info:");
-        infoMap.forEach((k, v) -> System.out.println(k + ": " + v));
-        System.out.println("Keystore saved at: " + filePath.toAbsolutePath());
-        //convert publickey to base 64
-        String publicKeyBase64 = Base64.getEncoder().encodeToString(keyUtil.getPublicKey().getEncoded());
-        //luw vao db
-        saveNewPubKeyInfoWithUser(staff.getStaffCode(), publicKeyBase64, java.time.LocalDateTime.now().toString(), keyUtil.getCryptoType().toString());
-        // Trả về đường dẫn để controller có thể gửi file
-        System.out.println(keyUtil.getPublicKey().toString());
-        System.out.println(keyUtil.getPrivateKey().toString());
-        return filePath;
-        }
-         
-    }
-    @Autowired
-    private UserKeyService userKeyService;
-    public void saveNewPubKeyInfoWithUser(String staffcode, String publickey, String createdAt, String CryptoType){
-        userKeyService.saveNewUserKey(staffcode, publickey, createdAt, CryptoType);
-    }
     
     private Map<String, Object> getCertificateInfoFromBase64(String base64P12, String alias, char[] password) throws Exception {
         byte[] p12Bytes = Base64.getDecoder().decode(base64P12);
@@ -110,37 +56,43 @@ public class CertificateService {
         return info;
     }
 
-    /**
-     * Export .p12 ra file tạm để tải về
-     */
-    public Path exportP12ToFile(String studentId) throws Exception {
-        com.example.demo.entity.Certificate certEntity = certRepo.findByCertId(studentId)
-                .orElseThrow(() -> new RuntimeException("Certificate not found"));
-
-        // Decode Base64
-        byte[] p12Bytes = Base64.getDecoder().decode(certEntity.getCertificate());
-
-        // Tạo file tạm
-        Path tempFile = Files.createTempFile(studentId + "_cert", ".p12");
-        Files.write(tempFile, p12Bytes);
-        System.out.println(tempFile.toAbsolutePath());
-
-        return tempFile;
-    }
+    
 
     /**
-     * Sign certificate with staff's private key
+     * Sign certificate with staff's private key and generate PDF
      */
     public Certificate signCertificate(String certificateId, String staffId) throws Exception {
         // Get certificate
         Certificate cert = certRepo.findById(Long.parseLong(certificateId))
                 .orElseThrow(() -> new RuntimeException("Certificate not found"));
 
-        // Here we would implement the actual signing logic
-        // For now, just update the status to indicate it's signed
-        cert.setStatus("SIGNED");
+        // Generate the actual PDF certificate using student info
+        // This should use the existing template and fill with student data
+        String studentId = cert.getStudentId();
+        if (studentId != null && !studentId.isEmpty()) {
+            try {
+                // Generate PDF using fillCertificate service
+                // We need to get student code from studentId
+                // For now, assume studentId is the student code
+                String pdfPath = fillCertificate.generateCertificate(studentId);
+
+                // Update certificate with PDF path
+                cert.setPdf_uri(pdfPath);
+                cert.setStatus("COMPLETED");
+                cert.setUserSignedId(staffId); // Set who signed it
+            } catch (Exception e) {
+                System.err.println("Failed to generate PDF for certificate: " + e.getMessage());
+                cert.setStatus("ERROR");
+            }
+        } else {
+            cert.setStatus("ERROR");
+        }
+
         return certRepo.save(cert);
-    }
+    }   
+
+    @Autowired
+    private fillCertificate fillCertificate;
 
     /**
      * Get all certificates with pagination
@@ -150,29 +102,13 @@ public class CertificateService {
     }
 
     /**
-     * Get certificate PDF bytes
+     * Get certificates by student ID with pagination
      */
-    public byte[] getCertificatePdf(String certificateId) throws Exception {
-        Certificate cert = certRepo.findById(Long.parseLong(certificateId))
-                .orElseThrow(() -> new RuntimeException("Certificate not found"));
-
-        // For now, return the certificate data as bytes
-        // In a real implementation, this would generate or retrieve the actual PDF
-        if (cert.getPdf_uri() != null) {
-            // If PDF URI exists, read from file system
-            Path pdfPath = Path.of(cert.getPdf_uri());
-            if (Files.exists(pdfPath)) {
-                return Files.readAllBytes(pdfPath);
-            }
-        }
-
-        // Fallback: return certificate data as base64 decoded bytes
-        if (cert.getCertificate() != null) {
-            return Base64.getDecoder().decode(cert.getCertificate());
-        }
-
-        throw new RuntimeException("No PDF data available for certificate: " + certificateId);
+    public Page<Certificate> getCertificatesByStudentIdPaged(String studentId, Pageable pageable) {
+        return certRepo.findByStudentId(studentId, pageable);
     }
+
+  
 
     /**
      * Get certificate expiration statistics
@@ -216,5 +152,44 @@ public class CertificateService {
         stats.put("totalActive", totalActive);
 
         return stats;
+    }
+
+    /**
+     * Get certificate by ID
+     */
+    public Certificate getCertificateById(String id) throws Exception {
+        return certRepo.findById(Long.parseLong(id))
+                .orElseThrow(() -> new RuntimeException("Certificate not found"));
+    }
+
+    /**
+     * Get certificate PDF by ID
+     */
+    public byte[] getCertificatePdf(String id) throws Exception {
+        Certificate cert = getCertificateById(id);
+
+        if (cert.getPdf_uri() == null || cert.getPdf_uri().isEmpty()) {
+            throw new RuntimeException("PDF not found for certificate");
+        }
+
+        // Read PDF file from path
+        Path pdfPath = Path.of(cert.getPdf_uri());
+        if (!Files.exists(pdfPath)) {
+            throw new RuntimeException("PDF file not found on disk");
+        }
+
+        return Files.readAllBytes(pdfPath);
+    }
+
+    /**
+     * Check if certificate PDF exists
+     */
+    public boolean certificatePdfExists(String id) throws Exception {
+        Certificate cert = getCertificateById(id);
+        if (cert.getPdf_uri() == null || cert.getPdf_uri().isEmpty()) {
+            return false;
+        }
+        Path pdfPath = Path.of(cert.getPdf_uri());
+        return Files.exists(pdfPath);
     }
 }

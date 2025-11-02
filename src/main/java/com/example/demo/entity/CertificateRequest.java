@@ -1,13 +1,11 @@
 package com.example.demo.entity;
+import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,29 +21,55 @@ public class CertificateRequest {
     @Column(name = "template_id")
     private String templateId;
 
+    @Column(name = "request_code", unique = true, nullable = false)
+    private String requestCode;
+
     @Column(name = "request_type")
     private String requestType;
 
-    private String reason;
-
-    @Column(name = "serial_no")
-    private String serialNo;
-
-    private String status;
-
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+     
+    @Column(name = "status", nullable = false)
+    private String status;
+
+
+    @Column(name = "student_id", nullable = false)
+    private String studentRequestId;
+
+    @Column(name = "student_name")
+    private String studentName;
+
+    @Column(name = "student_code")
+    private String studentCode;
 
     @ManyToOne
-    @JoinColumn(name = "student_id")
-    @JsonIgnore
-    private Student student;
+    @JoinColumn(name = "staff_approved_id")
+    private Staff staffApproved;
+
+    @Column(name = "staff_approved_id", insertable = false, updatable = false)
+    private Long staffApprovedId;
 
     @ManyToOne
-    @JoinColumn(name = "staff_id")
-    @JsonIgnore
-    private Staff staff;
+    @JoinColumn(name = "director_approved_id")
+    private Staff directorApproved;
+
+    @Column(name = "director_approved_id", insertable = false, updatable = false)
+    private Long directorApprovedId;
+
+    @Column(name = "admin_notes")
+    private String adminNotes;
+
+    @Column(name = "director_notes")
+    private String directorNotes;
+
+    @Column(name = "reviewed_at")
+    private LocalDateTime reviewedAt;
+
+    @Column(name = "director_reviewed_at")
+    private LocalDateTime directorReviewedAt;
+
 }

@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Set;
 
 
 @AllArgsConstructor
@@ -19,7 +18,7 @@ import java.util.Set;
 
 public class Student extends User {
 
-    @Column(name = "student_code")
+    @Column(name = "student_code", unique = true, nullable = false)
     private String studentCode;
     @Column(name = "major_name")
     private String majorName;
@@ -33,6 +32,8 @@ public class Student extends User {
     private boolean passedEnglish;
     @Column(name="status_sv")
     private String statusSV;
+    @Column(name="xep_loai")
+    private String xepLoai;
 
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
