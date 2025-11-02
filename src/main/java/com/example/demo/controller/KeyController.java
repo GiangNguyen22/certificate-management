@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.entity.UserPublicKeys;
 import com.example.demo.service.KeyService;
 import com.example.demo.service.interfaces.p12Service;
@@ -33,9 +34,12 @@ public class KeyController {
         String adminId = body.get("adminId");
         try {
             String p12CertPath = p12service.generateP12(staffId);
-            return ResponseEntity.ok(p12CertPath);
+            Map<String, String> data = Map.of("p12CertPath", p12CertPath);
+            ApiResponse response = new ApiResponse(true, "SUCCESS", "P12 certificate generated successfully", data);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(e.getMessage());
+            ApiResponse response = new ApiResponse(false, "ERROR", "Error generating P12 certificate: " + e.getMessage(), null);
+            return ResponseEntity.status(500).body(response);
         }
     }
 
