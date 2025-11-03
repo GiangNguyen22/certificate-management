@@ -20,6 +20,7 @@ public class Staff extends User {
     @Column(name="staff_code", unique = true, nullable = false)
     private String staffCode;
     private String position;
+    @Column(name = "major_name")
     private String majorName;
     
 }

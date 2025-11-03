@@ -1,9 +1,6 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,9 +17,12 @@ public class Certificate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "cert_id")
     private String certId;
+    @Column(name = "template_id")
     private String templateId;
     private String studentId;
+    @Column(name = "user_sign_id")
     private String userSignedId;
     private String issued_at;
     private String expire_at;
