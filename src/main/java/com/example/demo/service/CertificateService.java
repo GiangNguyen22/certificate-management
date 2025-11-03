@@ -38,7 +38,7 @@ public class CertificateService {
 
     public Path create(String staffId, String password) throws Exception {
         // 1️⃣ Lấy thông tin staff
-        Staff staff = staffRepository.findByStaffCode(staffId);
+        Staff staff = staffRepository.findByStaffCode(staffId).orElseThrow(() -> new RuntimeException("Staff not found"));
         if (staff == null) {
             throw new ResourceNotFoundEx("Staff not found with ID: " + staffId);
         } else{

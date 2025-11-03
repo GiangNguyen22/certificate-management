@@ -4,11 +4,20 @@ import org.springframework.web.multipart.MultipartFile;
 
 public class CertificateSignDTO{
     private String StudentCode;
+    private String RequestCode;
     private String StaffCode;
     private String KeystorePass;
     private String Alias;
-    private String requestId;
     private MultipartFile p12File;
+
+    public String getRequestCode() {
+        return RequestCode;
+    }
+
+    public void setRequestCode(String requestCode) {
+        RequestCode = requestCode;
+    }
+
     public String getStudentCode() {
         return StudentCode;
     }
@@ -32,12 +41,6 @@ public class CertificateSignDTO{
     }
     public void setAlias(String alias) {
         Alias = alias;
-    }
-    public String getRequestId() {
-        return requestId;
-    }
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
     }
     public MultipartFile getP12File() {
         return p12File;

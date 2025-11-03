@@ -46,18 +46,22 @@ public class SecurityConfig {
                     "/configuration/ui",
                     "/configuration/security",
                     "/api/test-service/**",
-                    "/api/v1/requests/*/verifydiploma",
-                    "/api/v1/requests/sign"
+                    "/api/v1/requests/*/verifydiploma"
+
                 ).permitAll()
                 .requestMatchers("/api/v1/requests/**",
                     "/api/v1/requests/*/signrequest",
+                        "/api/v1/requests/sign",
                     "/api/keys/generate"
                     ).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/certificates/**").authenticated()
                 .requestMatchers("/api/certificate-requests/**").authenticated()
                 .requestMatchers("/api/users/profile").authenticated()
                     .requestMatchers("/api/users/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/certificates/**").hasAnyRole("ADMIN", "STAFF")
+                    .requestMatchers("/api/certificate-requests/**").authenticated()
+                    .requestMatchers("/api/keys/**").hasRole("ADMIN")
+                    .requestMatchers("/api/users/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

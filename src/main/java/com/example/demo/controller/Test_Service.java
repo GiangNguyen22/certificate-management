@@ -56,7 +56,7 @@ public class Test_Service {
             MultipartFile p12File = requestDTO.getP12File();
             p12Path = TempFileUtil.saveTempFile(p12File);
             String signedPath = ProcessSignUtil.completeSign(
-                requestDTO.getRequestId(),
+                requestDTO.getRequestCode(),
                 requestDTO.getStudentCode(),
                 requestDTO.getStaffCode(),
                 p12Path,

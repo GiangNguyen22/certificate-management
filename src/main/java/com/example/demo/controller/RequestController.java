@@ -49,19 +49,21 @@ public class RequestController {
     @PostMapping(value = "/sign", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> signRequest(@Valid @ModelAttribute CertificateSignDTO requestDTO) {
         String p12Path = null;
-        String statusRequest = certRequestService.findStatusById(Long.parseLong(requestDTO.getRequestId()));
-        if("PENDING".equals(statusRequest)){
+        String statusRequest = certRequestService.findStatusByRequestCode(requestDTO.getRequestCode());
+        if("APPROVED".equals(statusRequest)){
                     try{
             MultipartFile p12File = requestDTO.getP12File();
             p12Path = TempFileUtil.saveTempFile(p12File);
             String signedPath = ProcessSignUtil.completeSign(
-                requestDTO.getRequestId(),
+                requestDTO.getRequestCode(),
                 requestDTO.getStudentCode(),
                 requestDTO.getStaffCode(),
                 p12Path,
                 requestDTO.getKeystorePass(),
                 requestDTO.getAlias()
+
             );
+                        System.out.println(requestDTO.getKeystorePass());
             Map<String, String> data = new HashMap<>();
             data.put("signedFilePath", signedPath);
             ApiResponse response = new ApiResponse(true, "SUCCESS", "Request signed successfully", data);

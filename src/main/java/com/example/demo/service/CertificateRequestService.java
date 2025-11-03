@@ -18,8 +18,12 @@ public class CertificateRequestService {
     private final CertificateRequestRepository certificateRequestRepository;
 
 
-    public String findStatusById(Long requestId) {
-        return certificateRequestRepository.findStatusById(requestId);
+//    public String findStatusById(Long requestId) {
+//        return certificateRequestRepository.findStatusById(requestId);
+//    }
+
+    public String findStatusByRequestCode(String requestCode) {
+        return certificateRequestRepository.findStatusByRequestCode(requestCode);
     }
 
     public String createRequest(String templateId, String requestCode, String type, String status, String studentId) {

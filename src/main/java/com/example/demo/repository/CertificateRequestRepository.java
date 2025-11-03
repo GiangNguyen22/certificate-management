@@ -15,6 +15,9 @@ public interface CertificateRequestRepository extends JpaRepository<CertificateR
     List<CertificateRequest> findByStatus(String status);
     @Query("SELECT r.status FROM CertificateRequest r WHERE r.id = :requestId")
     String findStatusById(@Param("requestId") Long requestId);
+
+    @Query("SELECT r.status FROM CertificateRequest r WHERE r.requestCode = :requestCode")
+    String findStatusByRequestCode(@Param("requestCode") String requestCode);
     // @Query("SELECT cr FROM CertificateRequest cr WHERE cr.student.id = :studentId ORDER BY cr.createdAt DESC")
     // List<CertificateRequest> findByStudentId(@Param("studentId") Long studentId);
 
