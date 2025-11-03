@@ -46,7 +46,8 @@ public class SecurityConfig {
                     "/configuration/ui",
                     "/configuration/security",
                     "/api/test-service/**",
-                    "/api/v1/requests/**/verifydiploma"
+                    "/api/v1/requests/*/verifydiploma",
+                    "/api/v1/requests/sign"
                 ).permitAll()
                 .requestMatchers("/api/v1/requests/**",
                     "/api/v1/requests/*/signrequest",

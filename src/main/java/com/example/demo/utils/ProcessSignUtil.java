@@ -8,6 +8,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.example.demo.service.CertificateRequestService;
 import com.example.demo.service.fillCertificate;
 import com.example.demo.service.interfaces.CertService;
 
@@ -18,12 +21,15 @@ import com.example.demo.config.AppContext;
 public class ProcessSignUtil {
 
     
-
-    public static String completeSign(String studentCode, String staffCode, String keyStorePath, String keyStorePassword, String alias) throws Exception {
+    
+    public static String completeSign(String requestId, String studentCode, String staffCode, String keyStorePath, String keyStorePassword, String alias) throws Exception {
        
     // obtain Spring-managed fillCertificate bean so its @Autowired studentRepository is initialized
+
+    
     fillCertificate fillCert = AppContext.getBean(fillCertificate.class);
     CertService certService = AppContext.getBean(CertService.class);
+    CertificateRequestService certRequestService = AppContext.getBean(CertificateRequestService.class);
         KeyUtil keyUtil = new KeyUtil();
         char[] pwdArray = keyStorePassword.toCharArray();
         KeyStore keystore = KeyStore.getInstance("PKCS12");
@@ -45,6 +51,8 @@ public class ProcessSignUtil {
         String serialNo = certificate.getSerialNumber().toString();
 
         certService.saveCertificateRecord(certId, templateId, studentId,staffCode, issuedAt, expireAt, status, serialNo, pathDocSigned, hashOfPdf);
+
+        certRequestService.updateStatusOfRequest(Long.parseLong(requestId), "SIGNED");
         return pathDocSigned;
     }
 }

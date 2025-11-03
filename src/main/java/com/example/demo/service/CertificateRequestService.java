@@ -1,13 +1,7 @@
 package com.example.demo.service;
-
 import com.example.demo.entity.CertificateRequest;
-import com.example.demo.entity.Student;
 import com.example.demo.repository.CertificateRequestRepository;
-import com.example.demo.repository.StudentRepositoryI;
-
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +17,10 @@ public class CertificateRequestService {
 
     private final CertificateRequestRepository certificateRequestRepository;
 
-    private final StudentRepositoryI studentRepository;
+    
+    public String findStatusById(Long requestId) {
+        return certificateRequestRepository.findStatusById(requestId);
+    }
 
     public String createRequest(String templateId, String requestCode, String type, String status, String studentId) {
 
@@ -79,4 +76,16 @@ public class CertificateRequestService {
     public Optional<CertificateRequest> getRequestById(Long id) {
         return certificateRequestRepository.findById(id);
     }
+    public boolean updateStatusOfRequest(Long requestId, String newStatus) {
+        Optional<CertificateRequest> optionalRequest = certificateRequestRepository.findById(requestId);
+        if (optionalRequest.isPresent()) {
+            CertificateRequest request = optionalRequest.get();
+            request.setStatus(newStatus);
+            request.setUpdatedAt(LocalDateTime.now());
+            certificateRequestRepository.save(request);
+            return true;
+        }
+        return false;
+    }
+
 }
