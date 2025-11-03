@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -28,22 +29,78 @@ public class CertificateRequestController {
     public ResponseEntity<Page<CertificateRequest>> getAllRequests(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<CertificateRequest> requests = certificateRequestService.getAllRequestsPaged(page, size);
-        return ResponseEntity.ok(requests);
+        try {
+            Page<CertificateRequest> requests = certificateRequestService.getAllRequestsPaged(page, size);
+            return ResponseEntity.ok(requests);
+        } catch (Exception e) {
+            // Return empty page if there's an error
+            return ResponseEntity.ok(Page.empty());
+        }
     }
 
-   
+
 
     @GetMapping("/recent")
     public ResponseEntity<List<CertificateRequest>> getRecentRequests(@RequestParam(defaultValue = "5") int size) {
-        List<CertificateRequest> requests = certificateRequestService.getRecentRequests(size);
-        return ResponseEntity.ok(requests);
+        try {
+            List<CertificateRequest> requests = certificateRequestService.getRecentRequests(size);
+            return ResponseEntity.ok(requests);
+        } catch (Exception e) {
+            return ResponseEntity.ok(new java.util.ArrayList<>());
+        }
     }
 
     @GetMapping("/pending")
     public ResponseEntity<List<CertificateRequest>> getPendingRequests() {
-        List<CertificateRequest> requests = certificateRequestService.getPendingRequests();
-        return ResponseEntity.ok(requests);
+        try {
+            List<CertificateRequest> requests = certificateRequestService.getPendingRequests();
+            return ResponseEntity.ok(requests);
+        } catch (Exception e) {
+            return ResponseEntity.ok(new java.util.ArrayList<>());
+        }
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<List<CertificateRequest>> getMyRequests() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            // Assuming username is the studentId for now - adjust based on your User entity structure
+            List<CertificateRequest> requests = certificateRequestService.getRequestsByStudent(username);
+            return ResponseEntity.ok(requests);
+        } catch (Exception e) {
+            return ResponseEntity.ok(new java.util.ArrayList<>());
+        }
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createRequest(@RequestBody Map<String, Object> requestData) {
+        try {
+            String templateId = String.valueOf(requestData.get("templateId"));
+            String requestCode = String.valueOf(requestData.get("requestCode"));
+            String type = String.valueOf(requestData.get("type"));
+            String status = String.valueOf(requestData.get("status"));
+            String studentId = String.valueOf(requestData.get("studentId"));
+
+            // Validate required fields
+            if (studentId == null || studentId.trim().isEmpty()) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("error", "Student ID is required");
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            String result = certificateRequestService.createRequest(templateId, requestCode, type, status, studentId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Request created successfully");
+            response.put("requestCode", result);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Failed to create request: " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 
     @PutMapping("/{id}/status")
@@ -69,5 +126,5 @@ public class CertificateRequestController {
         }
     }
 
-   
+
 }

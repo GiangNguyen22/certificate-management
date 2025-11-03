@@ -5,13 +5,16 @@ import com.example.demo.entity.Student;
 import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.example.demo.service.interfaces.p12Service;
 
 @RestController
 @RequestMapping("/api/users")
@@ -19,11 +22,30 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private p12Service p12Service;
 
     @PostMapping("/staff")
     public ResponseEntity<Staff> createStaff(@RequestBody Staff staff) throws Exception {
         Staff createdStaff = userService.createStaff(staff);
         return ResponseEntity.ok(createdStaff);
+    }
+
+    @PostMapping("/staff/{staffCode}/generate-key")
+    public ResponseEntity<ByteArrayResource> generateStaffKey(@PathVariable String staffCode) {
+        try {
+            ByteArrayResource resource = p12Service.generateP12(staffCode);
+            String filename = staffCode + ".p12";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(resource);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @GetMapping("/staff")
@@ -36,6 +58,21 @@ public class UserController {
     public ResponseEntity<List<Student>> getAllStudents() {
         List<Student> students = userService.getAllStudents();
         return ResponseEntity.ok(students);
+    }
+
+    @GetMapping("/students/{id}")
+    public ResponseEntity<?> getStudentById(@PathVariable Long id) {
+        try {
+            Student student = userService.getAllStudents().stream()
+                    .filter(s -> s.getId().equals(id))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Student not found"));
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Student not found: " + e.getMessage());
+            return ResponseEntity.status(404).body(error);
+        }
     }
 
     @GetMapping("/admins")

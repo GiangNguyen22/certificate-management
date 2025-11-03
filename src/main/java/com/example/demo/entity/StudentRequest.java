@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,5 +27,8 @@ public class StudentRequest {
     @JoinColumn(name = "student_id", nullable = false)
     @JsonIgnore
     private Student student;
+
+    @Column(name = "student_id", insertable = false, updatable = false)
+    private Long studentId;
 
 }

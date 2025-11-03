@@ -3,10 +3,9 @@ package com.example.demo.controller;
 import com.example.demo.dto.AuthRequest;
 import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.RegisterRequest;
-import com.example.demo.entity.Student;
-import com.example.demo.entity.Staff;
 import com.example.demo.entity.User;
 import com.example.demo.service.AuthService;
+import com.example.demo.service.CustomUserDetailsService;
 import com.example.demo.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,10 +22,13 @@ public class AuthController {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) throws Exception {
         User user = authService.register(request);
-        UserDetails userDetails = authService.loadUserByUsername(user.getUsername());
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
 
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = jwtService.generateRefreshToken(userDetails);
@@ -36,7 +38,24 @@ public class AuthController {
         response.setRefreshToken(refreshToken);
         response.setUsername(user.getUsername());
         response.setRole(user.getRoles().iterator().next().getName());
-        response.setUser(user);
+
+        // Map user data properly for frontend
+        if (user instanceof com.example.demo.entity.Student) {
+            com.example.demo.entity.Student student = (com.example.demo.entity.Student) user;
+            response.setUserId(student.getId());
+            response.setUser(student);
+            response.setStudentCode(student.getStudentCode());
+            response.setStartYear(student.getStartYear());
+            response.setXepLoai(student.getXepLoai());
+        } else if (user instanceof com.example.demo.entity.Staff) {
+            com.example.demo.entity.Staff staff = (com.example.demo.entity.Staff) user;
+            response.setUserId(staff.getId());
+            response.setUser(staff);
+            response.setStaffCode(staff.getStaffCode());
+        } else {
+            response.setUserId(user.getId());
+            response.setUser(user);
+        }
 
         return ResponseEntity.ok(response);
     }
@@ -44,7 +63,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
         User user = authService.authenticate(request.getUsername(), request.getPassword());
-        UserDetails userDetails = authService.loadUserByUsername(user.getUsername());
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
 
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = jwtService.generateRefreshToken(userDetails);
@@ -54,7 +73,24 @@ public class AuthController {
         response.setRefreshToken(refreshToken);
         response.setUsername(user.getUsername());
         response.setRole(user.getRoles().iterator().next().getName());
-        response.setUser(user);
+
+        // Map user data properly for frontend
+        if (user instanceof com.example.demo.entity.Student) {
+            com.example.demo.entity.Student student = (com.example.demo.entity.Student) user;
+            response.setUserId(student.getId());
+            response.setUser(student);
+            response.setStudentCode(student.getStudentCode());
+            response.setStartYear(student.getStartYear());
+            response.setXepLoai(student.getXepLoai());
+        } else if (user instanceof com.example.demo.entity.Staff) {
+            com.example.demo.entity.Staff staff = (com.example.demo.entity.Staff) user;
+            response.setUserId(staff.getId());
+            response.setUser(staff);
+            response.setStaffCode(staff.getStaffCode());
+        } else {
+            response.setUserId(user.getId());
+            response.setUser(user);
+        }
 
         return ResponseEntity.ok(response);
     }
@@ -64,7 +100,7 @@ public class AuthController {
         String username = jwtService.extractUsername(refreshToken);
 
         if (username != null) {
-            UserDetails userDetails = authService.loadUserByUsername(username);
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
             if (jwtService.isTokenValid(refreshToken, userDetails)) {
                 String newAccessToken = jwtService.generateAccessToken(userDetails);

@@ -17,7 +17,7 @@ public class CertificateRequestService {
 
     private final CertificateRequestRepository certificateRequestRepository;
 
-    
+
     public String findStatusById(Long requestId) {
         return certificateRequestRepository.findStatusById(requestId);
     }
@@ -54,8 +54,7 @@ public class CertificateRequestService {
 
     public List<CertificateRequest> getRecentRequests(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
-        Page<CertificateRequest> page = certificateRequestRepository.findAll(pageable);
-        return page.getContent();
+        return certificateRequestRepository.findAll(pageable).getContent();
     }
 
     public CertificateRequest updateRequestStatus(Long requestId, String status, Long staffId) {
@@ -73,6 +72,23 @@ public class CertificateRequestService {
         return certificateRequestRepository.save(request);
     }
 
+    /**
+     * Review request bởi admin
+     */
+    public CertificateRequest reviewRequest(Long requestId, String status, String adminNotes) {
+        CertificateRequest request = certificateRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found with id: " + requestId));
+
+        request.setStatus(status);
+        request.setUpdatedAt(LocalDateTime.now());
+        // TODO: thêm trường adminNotes nếu entity có
+
+        return certificateRequestRepository.save(request);
+    }
+
+    /**
+     * Lấy chi tiết request theo id
+     */
     public Optional<CertificateRequest> getRequestById(Long id) {
         return certificateRequestRepository.findById(id);
     }

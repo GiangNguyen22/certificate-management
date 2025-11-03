@@ -21,6 +21,7 @@ public class Certificate {
     private String certId;
     @Column(name = "template_id")
     private String templateId;
+    @Column(name = "student_id")
     private String studentId;
     @Column(name = "user_sign_id")
     private String userSignedId;
@@ -28,9 +29,6 @@ public class Certificate {
     private String expire_at;
     private String status;
     private String serial_no;   // vd: 2025_IT_01234
-    // private String certificate; // Base64
-    // private String alias; //ten dinh danh cho certificate, mac dinh cho la studentCode di
-    // private String password; // password for certificate bao ve keystore pkcs12 va private key
     private String pdf_uri;
     private String pdf_sha256;
 

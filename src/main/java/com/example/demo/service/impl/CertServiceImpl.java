@@ -19,6 +19,9 @@ public class CertServiceImpl implements CertService {
     @Autowired
     private fillCertificate fillCert;
 
+    @Autowired
+    private com.example.demo.repository.CertificateRepository certRepo;
+
     @Override
     public String createCertificateForStudent(String studentCode) throws Exception {
         Student student = studentService.getStudentByStudentCode(studentCode);
@@ -58,7 +61,7 @@ public class CertServiceImpl implements CertService {
         cert.setPdf_sha256(pdfSha256);
 
         // Here you would typically save the certificate to the database
-        
+
 
         return certrepo.save(cert);
     }

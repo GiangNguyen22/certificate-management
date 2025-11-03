@@ -9,7 +9,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -86,7 +85,7 @@ public class KeyUtil {
         }
 
         this.setCreateAt(new Date().toString());
-
+      
         // 2️⃣ Xây dựng Subject DN
         X500Name subject;
         if (options.subjectDn != null && !options.subjectDn.isBlank()) {

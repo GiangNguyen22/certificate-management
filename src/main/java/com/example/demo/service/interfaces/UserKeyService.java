@@ -7,5 +7,5 @@ public interface UserKeyService {
      * Save a new user public key record.
      * @return the saved UserPublicKeys entity
      */
-    UserPublicKeys saveNewUserKey(String userId, String publicKey, String createdAt, String CryptoType);
+    UserPublicKeys saveNewUserKey(Long userId, String publicKey, String createdAt, String CryptoType);
 }

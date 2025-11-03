@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class RequestController {
     private final CertificateRequestService certificateRequestService;
     
-    
+
     // Constructor injection for the service
     public RequestController(CertificateRequestService certificateRequestService) {
         this.certificateRequestService = certificateRequestService;

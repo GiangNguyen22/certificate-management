@@ -1,15 +1,13 @@
-/*
-  
-
 package com.example.demo.config;
 
 import com.example.demo.entity.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -19,6 +17,9 @@ import java.util.Set;
 public class BatchDataLoader implements CommandLineRunner {
 
     private final EntityManager em;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public BatchDataLoader(EntityManager em) {
         this.em = em;
@@ -72,7 +73,7 @@ public class BatchDataLoader implements CommandLineRunner {
 
             // Roles
             Role rAdmin = new Role();
-            rAdmin.setName("ROLE_ADMIN");
+            rAdmin.setName("ADMIN");
             rAdmin.setDescription("Administrator role");
             Set<Permission> adminPerms = new HashSet<>();
             adminPerms.add(pCreate);
@@ -82,7 +83,7 @@ public class BatchDataLoader implements CommandLineRunner {
             em.persist(rAdmin);
 
             Role rStaff = new Role();
-            rStaff.setName("ROLE_STAFF");
+            rStaff.setName("STAFF");
             rStaff.setDescription("Staff role");
             Set<Permission> staffPerms = new HashSet<>();
             staffPerms.add(pCreate);
@@ -91,7 +92,7 @@ public class BatchDataLoader implements CommandLineRunner {
             em.persist(rStaff);
 
             Role rStudent = new Role();
-            rStudent.setName("ROLE_STUDENT");
+            rStudent.setName("STUDENT");
             rStudent.setDescription("Student role");
             Set<Permission> studentPerms = new HashSet<>();
             studentPerms.add(pView);
@@ -123,83 +124,100 @@ public class BatchDataLoader implements CommandLineRunner {
         }
     }
 
-    private void insertUsersStaffStudents() {
-        Long uCnt = em.createQuery("select count(u) from Staff u", Long.class).getSingleResult();
-        if (uCnt == 0) {
-            // Staff (admin)
-            Staff admin = new Staff();
-            admin.setUsername("admin");
-            admin.setPassword("admin123");
-            admin.setFullName("System Administrator");
-            admin.setEmail("admin@example.com");
-            admin.setPhone("0123456789");
-            admin.setDob(LocalDate.of(1990,1,1));
-            admin.setStatus(true);
-            admin.setDepartmentId(2);
-            admin.setName("Admin Name");
-            admin.setStaffCode("STF001");
-            // assign role admin
-            TypedQuery<Role> q = em.createQuery("select r from Role r where r.name = :name", Role.class);
-            q.setParameter("name", "ROLE_ADMIN");
-            Role adminRole = q.getResultStream().findFirst().orElse(null);
-            if (adminRole != null) {
-                Set<Role> roles = new HashSet<>();
-                roles.add(adminRole);
-                admin.setRoles(roles);
-            }
-            em.persist(admin);
+private void insertUsersStaffStudents() {
+    Long uCnt = em.createQuery("select count(u) from User u", Long.class).getSingleResult();
+    if (uCnt == 0) {
 
-            // Students
-            Student s1 = new Student();
-            s1.setUsername("student1");
-            s1.setPassword("changeit");
-            s1.setFullName("Nguyễn Văn A");
-            s1.setEmail("nguyenvana@example.com");
-            s1.setPhone("0987000001");
-            s1.setDob(LocalDate.of(2000, 5, 20));
-            s1.setStatus(true);
-            s1.setDepartmentId(1);
-            s1.setStudentCode("STU001");
-            s1.setMajorName("Computer Science");
-            s1.setClassName("CS21");
-            s1.setStartYear("2021");
-            s1.setGpa(3.5);
-            s1.setPassedEnglish(true);
-            s1.setStatusSV("GRADUATED");
-            TypedQuery<Role> q2 = em.createQuery("select r from Role r where r.name = :name", Role.class);
-            q2.setParameter("name", "ROLE_STUDENT");
-            Role studentRole = q2.getResultStream().findFirst().orElse(null);
-            if (studentRole != null) {
-                Set<Role> roles = new HashSet<>();
-                roles.add(studentRole);
-                s1.setRoles(roles);
-            }
-            em.persist(s1);
+        // 1. Load roles
+        Role adminRole = em.createQuery("select r from Role r where r.name = :name", Role.class)
+                .setParameter("name", "ADMIN")
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
 
-            Student s2 = new Student();
-            s2.setUsername("student2");
-            s2.setPassword("changeit");
-            s2.setFullName("Trần Thị B");
-            s2.setEmail("tranthib@example.com");
-            s2.setPhone("0987000002");
-            s2.setDob(LocalDate.of(2001, 3, 15));
-            s2.setStatus(true);
-            s2.setDepartmentId(1);
-            s2.setStudentCode("STU002");
-            s2.setMajorName("Business");
-            s2.setClassName("BM22");
-            s2.setStartYear("2022");
-            s2.setGpa(3.5);
-            s2.setPassedEnglish(false);
-            s2.setStatusSV("NOT_ELIGIBLE_ENGLISH");
-            if (studentRole != null) {
-                Set<Role> roles = new HashSet<>();
-                roles.add(studentRole);
-                s2.setRoles(roles);
-            }
-            em.persist(s2);
+        Role studentRole = em.createQuery("select r from Role r where r.name = :name", Role.class)
+                .setParameter("name", "STUDENT")
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+
+        // 2. Create Admin Staff (con của User)
+        Staff adminStaff = new Staff();
+        adminStaff.setUsername("admin");
+        adminStaff.setPassword(passwordEncoder.encode("admin123"));
+        adminStaff.setFullName("System Administrator");
+        adminStaff.setEmail("admin@example.com");
+        adminStaff.setPhone("0123456789");
+        adminStaff.setDob(LocalDate.of(1990, 1, 1));
+        adminStaff.setStatus(true);
+        adminStaff.setDepartmentId(2);
+        adminStaff.setName("Admin Name");
+        adminStaff.setStaffCode("STF001");
+
+        if (adminRole != null) {
+            Set<Role> roles = new HashSet<>();
+            roles.add(adminRole);
+            adminStaff.setRoles(roles);
         }
+
+        em.persist(adminStaff); // Hibernate tự persist cả User + Staff
+
+        // 3. Create Student 1
+        Student s1 = new Student();
+        s1.setUsername("student1");
+        s1.setPassword(passwordEncoder.encode("password"));
+        s1.setFullName("Nguyễn Văn A");
+        s1.setEmail("nguyenvana@example.com");
+        s1.setPhone("0987000001");
+        s1.setDob(LocalDate.of(2000, 5, 20));
+        s1.setStatus(true);
+        s1.setDepartmentId(1);
+        s1.setStudentCode("STU001");
+        s1.setMajorName("Computer Science");
+        s1.setClassName("CS21");
+        s1.setStartYear("2021");
+        s1.setGpa(3.5);
+        s1.setPassedEnglish(true);
+        s1.setStatusSV("GRADUATED");
+
+        if (studentRole != null) {
+            Set<Role> roles = new HashSet<>();
+            roles.add(studentRole);
+            s1.setRoles(roles);
+        }
+
+        em.persist(s1);
+
+        // 4. Create Student 2
+        Student s2 = new Student();
+        s2.setUsername("student2");
+        s2.setPassword(passwordEncoder.encode("password"));
+        s2.setFullName("Trần Thị B");
+        s2.setEmail("tranthib@example.com");
+        s2.setPhone("0987000002");
+        s2.setDob(LocalDate.of(2001, 3, 15));
+        s2.setStatus(true);
+        s2.setDepartmentId(1);
+        s2.setStudentCode("STU002");
+        s2.setMajorName("Business");
+        s2.setClassName("BM22");
+        s2.setStartYear("2022");
+        s2.setGpa(3.5);
+        s2.setPassedEnglish(false);
+        s2.setStatusSV("NOT_ELIGIBLE_ENGLISH");
+
+        if (studentRole != null) {
+            Set<Role> roles = new HashSet<>();
+            roles.add(studentRole);
+            s2.setRoles(roles);
+        }
+
+        em.persist(s2);
+
+        // 5. Flush để đảm bảo ID được gán
+        em.flush();
     }
+}
 
     private void insertStudentFilesAndRequests() {
         Long cnt = em.createQuery("select count(sf) from StudentFile sf", Long.class).getSingleResult();
@@ -212,7 +230,8 @@ public class BatchDataLoader implements CommandLineRunner {
             em.persist(sf1);
 
             // create a request for STU001
-            TypedQuery<Student> q = em.createQuery("select s from Student s where s.studentCode = :code", Student.class);
+            TypedQuery<Student> q = em.createQuery("select s from Student s where s.studentCode = :code",
+                    Student.class);
             q.setParameter("code", "STU001");
             Student s = q.getResultStream().findFirst().orElse(null);
             if (s != null) {
@@ -230,7 +249,8 @@ public class BatchDataLoader implements CommandLineRunner {
     private void insertCertificates() {
         Long cnt = em.createQuery("select count(c) from Certificate c", Long.class).getSingleResult();
         if (cnt == 0) {
-            TypedQuery<Student> q = em.createQuery("select s from Student s where s.studentCode = :code", Student.class);
+            TypedQuery<Student> q = em.createQuery("select s from Student s where s.studentCode = :code",
+                    Student.class);
             q.setParameter("code", "STU001");
             Student s = q.getResultStream().findFirst().orElse(null);
             if (s != null) {
@@ -245,7 +265,7 @@ public class BatchDataLoader implements CommandLineRunner {
                 c.setExpire_at(LocalDateTime.now().plusYears(1).toString());
                 c.setStatus("ACTIVE");
                 c.setSerial_no("2025_IT_0001");
-                c.setCertificate(null); // omit actual p12
+                // c.setCertificate(null); // omit actual p12 - method doesn't exist
                 c.setAlias(s.getStudentCode());
                 c.setPassword("changeit");
                 c.setPdf_uri("/pdfs/cert_STU001.pdf");
@@ -254,10 +274,4 @@ public class BatchDataLoader implements CommandLineRunner {
             }
         }
     }
-
-  
-
 }
-
-
- */

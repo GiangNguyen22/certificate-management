@@ -21,12 +21,12 @@ import com.example.demo.config.AppContext;
 public class ProcessSignUtil {
 
     
-    
+
     public static String completeSign(String requestId, String studentCode, String staffCode, String keyStorePath, String keyStorePassword, String alias) throws Exception {
        
     // obtain Spring-managed fillCertificate bean so its @Autowired studentRepository is initialized
 
-    
+
     fillCertificate fillCert = AppContext.getBean(fillCertificate.class);
     CertService certService = AppContext.getBean(CertService.class);
     CertificateRequestService certRequestService = AppContext.getBean(CertificateRequestService.class);

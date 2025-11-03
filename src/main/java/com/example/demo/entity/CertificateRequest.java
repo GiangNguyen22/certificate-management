@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 import java.time.LocalDateTime;
 
+import jakarta.persistence.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +12,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -37,7 +40,7 @@ public class CertificateRequest {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-     
+
     @Column(name = "status", nullable = false)
     private String status;
 

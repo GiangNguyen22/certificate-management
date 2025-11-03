@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-
 import java.util.List;
 
 @Repository
@@ -30,5 +29,5 @@ public interface CertificateRequestRepository extends JpaRepository<CertificateR
 
     // @Query("SELECT cr FROM CertificateRequest cr WHERE cr.student.id = :studentId AND cr.status = :status ORDER BY cr.createdAt DESC")
     // List<CertificateRequest> findByStudentIdAndStatus(@Param("studentId") Long studentId, @Param("status") String status);
-    
+
 }

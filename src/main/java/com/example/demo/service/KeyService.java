@@ -14,7 +14,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.List;
 
@@ -27,47 +26,54 @@ public class KeyService {
     @Autowired
     private UserRepository userRepository;
 
-    public UserPublicKeys generateKeyPair(String userId, String password) throws Exception {
-        // Generate RSA key pair
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-        keyGen.initialize(2048);
+    public UserPublicKeys generateKeyPair(Long userId, String cryptographyType) throws Exception {
+        // Generate key pair based on type
+        KeyPairGenerator keyGen;
+        if ("EC".equalsIgnoreCase(cryptographyType)) {
+            keyGen = KeyPairGenerator.getInstance("EC");
+            keyGen.initialize(new java.security.spec.ECGenParameterSpec("secp256r1"));
+        } else {
+            keyGen = KeyPairGenerator.getInstance("RSA");
+            keyGen.initialize(2048);
+        }
         KeyPair keyPair = keyGen.generateKeyPair();
 
         PrivateKey privateKey = keyPair.getPrivate();
         PublicKey publicKey = keyPair.getPublic();
 
-        // Encode private key to Base64 for storage in .crt file
+        // Encode keys to Base64
         String privateKeyBase64 = Base64.getEncoder().encodeToString(privateKey.getEncoded());
         String publicKeyBase64 = Base64.getEncoder().encodeToString(publicKey.getEncoded());
 
         // Get user info
-        User user = userRepository.findById(Long.parseLong(userId))
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Save to database
         UserPublicKeys keyEntity = new UserPublicKeys();
-        keyEntity.setUserId(userId);
+        keyEntity.setUser(user);
         keyEntity.setPublicKey(publicKeyBase64);
         keyEntity.setCreatedAt(java.time.LocalDateTime.now().toString());
+        keyEntity.setCryptographyType(cryptographyType != null ? cryptographyType : "RSA");
 
         UserPublicKeys savedKey = keyRepository.save(keyEntity);
 
-        // Create .crt file with private key
-        createCrtFile(savedKey.getId(), privateKeyBase64, user.getUsername());
+        // Create .key file with private key (not .crt)
+        createPrivateKeyFile(savedKey.getId(), privateKeyBase64, user.getUsername());
 
         return savedKey;
     }
 
-    private void createCrtFile(Long keyId, String privateKeyBase64, String userName) throws Exception {
-        // Create certificates directory if it doesn't exist
-        Path certDir = Paths.get("certificates");
-        if (!java.nio.file.Files.exists(certDir)) {
-            java.nio.file.Files.createDirectories(certDir);
+    private void createPrivateKeyFile(Long keyId, String privateKeyBase64, String userName) throws Exception {
+        // Create keys directory if it doesn't exist
+        Path keysDir = Paths.get("keys");
+        if (!java.nio.file.Files.exists(keysDir)) {
+            java.nio.file.Files.createDirectories(keysDir);
         }
 
-        // Write private key to .crt file
-        String fileName = "key_" + userName + "_" + keyId + ".crt";
-        Path filePath = certDir.resolve(fileName);
+        // Write private key to .key file
+        String fileName = "private_key_" + userName + "_" + keyId + ".key";
+        Path filePath = keysDir.resolve(fileName);
 
         try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
             // Write private key in PEM format
@@ -85,11 +91,13 @@ public class KeyService {
         UserPublicKeys key = keyRepository.findById(keyId)
                 .orElseThrow(() -> new RuntimeException("Key not found"));
 
-        User user = userRepository.findById(Long.parseLong(key.getUserId()))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = key.getUser();
+        if (user == null) {
+            throw new RuntimeException("User not found for key");
+        }
 
-        String fileName = "key_" + user.getUsername() + "_" + keyId + ".crt";
-        Path filePath = Paths.get("certificates", fileName);
+        String fileName = "private_key_" + user.getUsername() + "_" + keyId + ".key";
+        Path filePath = Paths.get("keys", fileName);
 
         if (!java.nio.file.Files.exists(filePath)) {
             throw new RuntimeException("Key file not found");

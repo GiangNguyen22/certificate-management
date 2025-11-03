@@ -1,7 +1,8 @@
 package com.example.demo.service.interfaces;
 
+import org.springframework.core.io.ByteArrayResource;
+
 public interface p12Service {
-    public String generateP12(String staffCode);
     
-    
+    ByteArrayResource generateP12(String staffCode);
 }

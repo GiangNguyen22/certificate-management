@@ -110,11 +110,7 @@ public class CertificateService {
         return info;
     }
 
-    
 
-    /**
-     * Sign certificate with staff's private key
-     */
     public Certificate signCertificate(String certificateId, String staffId) throws Exception {
         // Get certificate
         Certificate cert = certRepo.findById(Long.parseLong(certificateId))
@@ -126,6 +122,9 @@ public class CertificateService {
         return certRepo.save(cert);
     }
 
+    @Autowired
+    private fillCertificate fillCertificate;
+
     /**
      * Get all certificates with pagination
      */
@@ -133,7 +132,13 @@ public class CertificateService {
         return certRepo.findAll(pageable);
     }
 
-  
+
+    /**
+     * Get certificates by student ID with pagination
+     */
+    public Page<Certificate> getCertificatesByStudentIdPaged(String studentId, Pageable pageable) {
+        return certRepo.findByStudentId(studentId, pageable);
+    }
 
     /**
      * Get certificate expiration statistics
@@ -177,5 +182,44 @@ public class CertificateService {
         stats.put("totalActive", totalActive);
 
         return stats;
+    }
+
+    /**
+     * Get certificate by ID
+     */
+    public Certificate getCertificateById(String id) throws Exception {
+        return certRepo.findById(Long.parseLong(id))
+                .orElseThrow(() -> new RuntimeException("Certificate not found"));
+    }
+
+    /**
+     * Get certificate PDF by ID
+     */
+    public byte[] getCertificatePdf(String id) throws Exception {
+        Certificate cert = getCertificateById(id);
+
+        if (cert.getPdf_uri() == null || cert.getPdf_uri().isEmpty()) {
+            throw new RuntimeException("PDF not found for certificate");
+        }
+
+        // Read PDF file from path
+        Path pdfPath = Path.of(cert.getPdf_uri());
+        if (!Files.exists(pdfPath)) {
+            throw new RuntimeException("PDF file not found on disk");
+        }
+
+        return Files.readAllBytes(pdfPath);
+    }
+
+    /**
+     * Check if certificate PDF exists
+     */
+    public boolean certificatePdfExists(String id) throws Exception {
+        Certificate cert = getCertificateById(id);
+        if (cert.getPdf_uri() == null || cert.getPdf_uri().isEmpty()) {
+            return false;
+        }
+        Path pdfPath = Path.of(cert.getPdf_uri());
+        return Files.exists(pdfPath);
     }
 }

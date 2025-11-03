@@ -54,10 +54,10 @@ public class SecurityConfig {
                     "/api/keys/generate"
                     ).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/certificates/**").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers("/api/certificates/**").authenticated()
                 .requestMatchers("/api/certificate-requests/**").authenticated()
-                .requestMatchers("/api/keys/**").hasRole("ADMIN")
-                .requestMatchers("/api/users/**").hasRole("ADMIN")
+                .requestMatchers("/api/users/profile").authenticated()
+                    .requestMatchers("/api/users/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
