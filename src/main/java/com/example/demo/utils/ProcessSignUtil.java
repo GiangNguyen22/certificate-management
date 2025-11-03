@@ -22,7 +22,7 @@ public class ProcessSignUtil {
 
     
 
-    public static String completeSign(String requestId, String studentCode, String staffCode, String keyStorePath, String keyStorePassword, String alias) throws Exception {
+    public static String completeSign(String requestCode, String studentCode, String staffCode, String keyStorePath, String keyStorePassword, String alias) throws Exception {
        
     // obtain Spring-managed fillCertificate bean so its @Autowired studentRepository is initialized
 
@@ -52,7 +52,7 @@ public class ProcessSignUtil {
 
         certService.saveCertificateRecord(certId, templateId, studentId,staffCode, issuedAt, expireAt, status, serialNo, pathDocSigned, hashOfPdf);
 
-        certRequestService.updateStatusOfRequest(Long.parseLong(requestId), "SIGNED");
+        certRequestService.updateStatusOfRequest(requestCode, "SIGNED");
         return pathDocSigned;
     }
 }

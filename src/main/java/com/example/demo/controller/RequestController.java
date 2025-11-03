@@ -49,6 +49,12 @@ public class RequestController {
     @PostMapping(value = "/sign", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> signRequest(@Valid @ModelAttribute CertificateSignDTO requestDTO) {
         String p12Path = null;
+        System.out.println("Request Code: " + requestDTO.getRequestCode());
+        System.out.println("Student Code: " + requestDTO.getStudentCode());
+        System.out.println("Staff Code: " + requestDTO.getStaffCode());
+        System.out.println("Keystore Password: " + requestDTO.getKeystorePass());
+        System.out.println("Alias: " + requestDTO.getAlias());
+        
         String statusRequest = certRequestService.findStatusByRequestCode(requestDTO.getRequestCode());
         if("APPROVED".equals(statusRequest)){
                     try{
@@ -63,7 +69,7 @@ public class RequestController {
                 requestDTO.getAlias()
 
             );
-                        System.out.println(requestDTO.getKeystorePass());
+             
             Map<String, String> data = new HashMap<>();
             data.put("signedFilePath", signedPath);
             ApiResponse response = new ApiResponse(true, "SUCCESS", "Request signed successfully", data);
@@ -92,7 +98,7 @@ public class RequestController {
     }
     //Hoc sinh tao yeu cau lay Van Bang gui cho Giam Doc ky
     @PostMapping("/{studentcode}/signrequest")
-        public ResponseEntity<?> signRequest(@PathVariable("studentcode") String studentCode, @AuthenticationPrincipal User user, @RequestBody(required = false) Map<String, String> body) {
+        public ResponseEntity<?> signRequest(@PathVariable("studentcode") String studentCode, @RequestBody(required = false) Map<String, String> body) {
             // Kiểm tra body
         if (body == null || !body.containsKey("templateId") || !body.containsKey("type")) {
             ApiResponse error = new ApiResponse(false, "BAD_REQUEST", "Missing required fields: templateId and type");

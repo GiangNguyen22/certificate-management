@@ -4,11 +4,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 public class CertificateSignDTO{
     private String StudentCode;
-    private String RequestCode;
     private String StaffCode;
-    private String KeystorePass;
+    private String RequestCode;  
+    private MultipartFile p12File;  
     private String Alias;
-    private MultipartFile p12File;
+    private String KeystorePass;
+    
 
     public String getRequestCode() {
         return RequestCode;

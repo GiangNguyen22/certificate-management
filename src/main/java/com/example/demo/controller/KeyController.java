@@ -1,16 +1,12 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.entity.Staff;
-import com.example.demo.entity.User;
+
 import com.example.demo.entity.UserPublicKeys;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.KeyService;
 import com.example.demo.service.interfaces.p12Service;
-
-import com.example.demo.service.interfaces.p12Service;
 import com.example.demo.repository.StaffRepository;
-
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -19,11 +15,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/keys")

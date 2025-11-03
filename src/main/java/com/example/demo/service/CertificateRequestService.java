@@ -96,16 +96,18 @@ public class CertificateRequestService {
     public Optional<CertificateRequest> getRequestById(Long id) {
         return certificateRequestRepository.findById(id);
     }
-    public boolean updateStatusOfRequest(Long requestId, String newStatus) {
-        Optional<CertificateRequest> optionalRequest = certificateRequestRepository.findById(requestId);
-        if (optionalRequest.isPresent()) {
-            CertificateRequest request = optionalRequest.get();
-            request.setStatus(newStatus);
-            request.setUpdatedAt(LocalDateTime.now());
-            certificateRequestRepository.save(request);
-            return true;
-        }
-        return false;
+public boolean updateStatusOfRequest(String requestCode, String newStatus) {
+    Optional<CertificateRequest> optionalRequest = 
+        certificateRequestRepository.findByRequestCode(requestCode); // Correct
+
+    if (optionalRequest.isPresent()) {
+        CertificateRequest request = optionalRequest.get();
+        request.setStatus(newStatus);
+        request.setUpdatedAt(LocalDateTime.now());
+        certificateRequestRepository.save(request);
+        return true;
     }
+    return false;
+}
 
 }

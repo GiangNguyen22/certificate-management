@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
 import java.util.List;
 
@@ -13,11 +14,11 @@ public interface CertificateRequestRepository extends JpaRepository<CertificateR
 
     List<CertificateRequest> findByStudentRequestId(String studentId);
     List<CertificateRequest> findByStatus(String status);
-    @Query("SELECT r.status FROM CertificateRequest r WHERE r.id = :requestId")
-    String findStatusById(@Param("requestId") Long requestId);
-
-    @Query("SELECT r.status FROM CertificateRequest r WHERE r.requestCode = :requestCode")
-    String findStatusByRequestCode(@Param("requestCode") String requestCode);
+    // @Query("SELECT r.status FROM CertificateRequest r WHERE r.id = :requestId")
+    // String findStatusById(@Param("requestId") Long requestId);
+Optional<CertificateRequest> findByRequestCode(String requestCode);
+  @Query("SELECT r.status FROM CertificateRequest r WHERE r.requestCode = :requestCode")
+String findStatusByRequestCode(@Param("requestCode") String requestCode);
     // @Query("SELECT cr FROM CertificateRequest cr WHERE cr.student.id = :studentId ORDER BY cr.createdAt DESC")
     // List<CertificateRequest> findByStudentId(@Param("studentId") Long studentId);
 
