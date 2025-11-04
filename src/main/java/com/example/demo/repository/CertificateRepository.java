@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.lang.StackWalker.Option;
 import java.util.List;
 
 
@@ -17,6 +18,7 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
 
     List<Certificate> findByStatus(String status);
 
-    Page<Certificate> findByStudentId(String studentId, Pageable pageable);
+    Page<Certificate> findByStudentId(String studentCode, Pageable pageable);
+    Certificate findByCertIdAndStudentId(String certId, String studentId);
 
 }

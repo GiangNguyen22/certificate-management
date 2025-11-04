@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
+import java.util.Optional;
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.example.demo.entity.Staff;
+import com.example.demo.dto.response.CertificateDTO;
 import com.example.demo.entity.Certificate;
 
 import com.example.demo.service.interfaces.UserKeyService;
@@ -134,12 +135,16 @@ public class CertificateService {
 
 
     /**
-     * Get certificates by student ID with pagination
+     * Get certificates by student code with pagination
      */
-    public Page<Certificate> getCertificatesByStudentIdPaged(String studentId, Pageable pageable) {
-        return certRepo.findByStudentId(studentId, pageable);
+    public Page<CertificateDTO> getCertificatesByStudentCodePaged(String studentCode, Pageable pageable) {
+        Page<Certificate> certificates = certRepo.findByStudentId(studentCode, pageable);
+        return certificates.map(cert -> new CertificateDTO(cert.getId(), cert.getCertId(), cert.getStudentId(),
+                cert.getIssued_at(), cert.getExpire_at(), cert.getStatus(), cert.getSerial_no()));
     }
-
+    public Certificate getCertificateByCertIdAndStudentId(String certId, String studentCode) {
+        return certRepo.findByCertIdAndStudentId(certId, studentCode);
+    }
     /**
      * Get certificate expiration statistics
      */
@@ -222,4 +227,5 @@ public class CertificateService {
         Path pdfPath = Path.of(cert.getPdf_uri());
         return Files.exists(pdfPath);
     }
+
 }
