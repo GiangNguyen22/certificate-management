@@ -111,12 +111,12 @@
         <artifactId>sign</artifactId>
         <version>7.2.6</version>
     </dependency>
-
-    <dependency>
-        <groupId>org.bouncycastle</groupId>
-        <artifactId>bcprov-jdk15on</artifactId>
-        <version>1.70</version>
-    </dependency>
+<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on -->
+<dependency>
+    <groupId>org.bouncycastle</groupId>
+    <artifactId>bcpkix-jdk18on</artifactId>
+    <version>1.78.1</version>
+</dependency>
 
 		<dependency>
 			<groupId>com.itextpdf</groupId>
@@ -124,18 +124,6 @@
 			<version>7.2.6</version>
 		</dependency>
 
-		<!-- Nếu muốn ký số PDF -->
-		<dependency>
-			<groupId>com.itextpdf</groupId>
-			<artifactId>sign</artifactId>
-			<version>7.2.5</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.70</version>
-		</dependency>
 	<!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui -->
 <dependency>
     <groupId>org.springdoc</groupId>

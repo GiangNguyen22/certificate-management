@@ -106,26 +106,12 @@ public class KeyController {
     // KeyController.java (thêm method)
     @PostMapping("/generate/{staffCode}")
     public ResponseEntity<ByteArrayResource> generateP12ForStaff(@PathVariable String staffCode) {
+        if(staffCode == null || staffCode.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
         try {
-            String normalizedCode = staffCode.trim().toUpperCase();
-
-            System.out.println("🔍 Input staffCode = [" + normalizedCode + "]");
-            System.out.println("📋 All staff in DB:");
-            List<Staff> allStaff = staffRepository.findAll();
-            System.out.println("Total staff found: " + allStaff.size());
-            allStaff.forEach(s -> System.out.println(" - [" + s.getStaffCode() + "] - user_id: " + s.getId()));
-
-            Optional<Staff> staffOpt = staffRepository.findByStaffCode(normalizedCode);
-            System.out.println("Query result for '" + normalizedCode + "': " + staffOpt.isPresent());
-            if (staffOpt.isPresent()) {
-                System.out.println("Found staff: " + staffOpt.get().getStaffCode());
-            }
-
-            Staff staff = staffOpt.orElseThrow(() -> new RuntimeException("Staff not found with code: " + normalizedCode));
-
-            ByteArrayResource resource = p12service.generateP12(staff.getStaffCode());
-            String filename = staff.getStaffCode() + ".p12";
-
+            ByteArrayResource resource = p12service.generateP12(staffCode);
+            String filename = staffCode + ".p12";
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)

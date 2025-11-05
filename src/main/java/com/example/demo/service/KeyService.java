@@ -51,7 +51,7 @@ public class KeyService {
 
         // Save to database
         UserPublicKeys keyEntity = new UserPublicKeys();
-        keyEntity.setUser(user);
+        keyEntity.setStaffCode(userId.toString());
         keyEntity.setPublicKey(publicKeyBase64);
         keyEntity.setCreatedAt(java.time.LocalDateTime.now().toString());
         keyEntity.setCryptographyType(cryptographyType != null ? cryptographyType : "RSA");
@@ -91,7 +91,8 @@ public class KeyService {
         UserPublicKeys key = keyRepository.findById(keyId)
                 .orElseThrow(() -> new RuntimeException("Key not found"));
 
-        User user = key.getUser();
+        User user = userRepository.findById(Long.parseLong(key.getStaffCode()))
+                .orElse(null);
         if (user == null) {
             throw new RuntimeException("User not found for key");
         }

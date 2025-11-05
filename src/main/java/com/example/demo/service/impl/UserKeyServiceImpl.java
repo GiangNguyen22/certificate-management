@@ -13,7 +13,7 @@ public class UserKeyServiceImpl implements UserKeyService{
     @Override
     public UserPublicKeys saveNewUserKey(String staffCode, String publicKey, String createdAt, String CryptoType) {
         UserPublicKeys newUserPublicKeys = new UserPublicKeys();
-        // Note: User relationship should be set by the caller if needed
+        newUserPublicKeys.setStaffCode(staffCode);
         newUserPublicKeys.setPublicKey(publicKey);
         newUserPublicKeys.setCreatedAt(createdAt);
         newUserPublicKeys.setCryptographyType(CryptoType);

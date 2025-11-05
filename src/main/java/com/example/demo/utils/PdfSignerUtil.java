@@ -144,6 +144,7 @@ public class PdfSignerUtil {
             PdfSigner.CryptoStandard.CMS
     );
         os.close();
+        System.out.println("Thanhcongvienman");
         return outputPath;
     }
 

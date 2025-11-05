@@ -52,8 +52,11 @@ public class DigitalSignatureUtil {
    public static VerifyResult verifySignature(String filepath, UserPubKeysRepository userPKRepo) throws Exception {
       VerifyResult result = new VerifyResult();
       PdfReader reader = new PdfReader(filepath);
+      System.out.println("Success read");
       PdfDocument pdfDoc = new PdfDocument(reader);
+      System.out.println("Success pdfDoc");
       SignatureUtil signUtil = new SignatureUtil(pdfDoc);
+      System.out.println("Success signUtil");
       List<String> signatureNames = signUtil.getSignatureNames();
       if (signatureNames.isEmpty()) {
          result.setValid(false);
@@ -61,9 +64,11 @@ public class DigitalSignatureUtil {
          pdfDoc.close();
          return result;
       }
-      String sigName = signatureNames.get(signatureNames.size() - 1);
 
+      String sigName = signatureNames.get(signatureNames.size() - 1);
+System.out.println("Success sigName: " + sigName);
       PdfPKCS7 pkcs7 = signUtil.readSignatureData(sigName, "BC");
+      System.out.println("Success pkcs7");
       Certificate[] certs = pkcs7.getSignCertificateChain();
 
       result.setSignerName(pkcs7.getSignName());
@@ -95,8 +100,8 @@ public class DigitalSignatureUtil {
       // 6. Kiểm tra public key
       Matcher matcher = java.util.regex.Pattern.compile("UID=([^,]+)")
             .matcher(signCert.getSubjectX500Principal().toString());
-      String staffcode = matcher.find() ? matcher.group(1) : null;
-      String pubkeyfromDB = userPKRepo.findPublicKeyByUserId(staffcode);
+      String staffCode = matcher.find() ? matcher.group(1) : null;
+      String pubkeyfromDB = userPKRepo.findPublicKeyByStaffCode(staffCode);
       X509Certificate signCertificate = (X509Certificate) certs[0];
       PublicKey publicKey = signCertificate.getPublicKey();
       String publicKeyBase64 = java.util.Base64.getEncoder().encodeToString(publicKey.getEncoded());

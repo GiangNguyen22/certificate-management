@@ -37,7 +37,7 @@ public class CertificateService {
     @Autowired
     private CertificateRepository certRepo;
 
-    public Path create(String staffId, String password) throws Exception {
+    public String create(String staffId, String password) throws Exception {
         // 1️⃣ Lấy thông tin staff
         Staff staff = staffRepository.findByStaffCode(staffId).orElseThrow(() -> new RuntimeException("Staff not found"));
         if (staff == null) {
@@ -76,12 +76,13 @@ public class CertificateService {
         System.out.println("Keystore saved at: " + filePath.toAbsolutePath());
         //convert publickey to base 64
         String publicKeyBase64 = Base64.getEncoder().encodeToString(keyUtil.getPublicKey().getEncoded());
+        System.out.println(staff.getStaffCode());
         //luw vao db
         saveNewPubKeyInfoWithUser(staff.getStaffCode(), publicKeyBase64, java.time.LocalDateTime.now().toString(), keyUtil.getCryptoType().toString());
         // Trả về đường dẫn để controller có thể gửi file
         System.out.println(keyUtil.getPublicKey().toString());
         System.out.println(keyUtil.getPrivateKey().toString());
-        return filePath;
+        return pkcs12Base64;
         }
          
     }
