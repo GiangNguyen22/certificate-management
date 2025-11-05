@@ -2,18 +2,20 @@ package com.example.demo.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import com.example.demo.service.CertificateService;
 import com.example.demo.repository.UserPubKeysRepository;
 import com.example.demo.service.interfaces.UserKeyService;
 import com.example.demo.entity.UserPublicKeys;
+
 @Service
-public class UserKeyServiceImpl implements UserKeyService{
+public class UserKeyServiceImpl implements UserKeyService {
     @Autowired
     private UserPubKeysRepository userPubKeysRepository;
+
     @Override
     public UserPublicKeys saveNewUserKey(String staffCode, String publicKey, String createdAt, String CryptoType) {
         UserPublicKeys newUserPublicKeys = new UserPublicKeys();
-        // Note: User relationship should be set by the caller if needed
+        newUserPublicKeys.setStaffCode(staffCode);
         newUserPublicKeys.setPublicKey(publicKey);
         newUserPublicKeys.setCreatedAt(createdAt);
         newUserPublicKeys.setCryptographyType(CryptoType);

@@ -75,7 +75,7 @@ public class AuthService {
         student.setStudentCode(request.getStudentCode());
         student.setMajorName(request.getMajorName());
         student.setStartYear(request.getYear());
-        student.setXepLoai(request.getXepLoai()); // Add xepLoai field
+        student.setXepLoai(request.getXepLoai()); 
         student.setGpa(0.0);
         student.setPassedEnglish(false);
         student.setStatusSV("ACTIVE");

@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +39,6 @@ public class CertificateRequestController {
         }
     }
 
-
-
     @GetMapping("/recent")
     public ResponseEntity<List<CertificateRequest>> getRecentRequests(@RequestParam(defaultValue = "5") int size) {
         try {
@@ -60,19 +59,23 @@ public class CertificateRequestController {
         }
     }
 
-    @GetMapping("/my")
-    public ResponseEntity<List<CertificateRequest>> getMyRequests() {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            // Assuming username is the studentId for now - adjust based on your User entity structure
-            List<CertificateRequest> requests = certificateRequestService.getRequestsByStudent(username);
-            return ResponseEntity.ok(requests);
-        } catch (Exception e) {
-            return ResponseEntity.ok(new java.util.ArrayList<>());
+  @GetMapping("/my")
+public ResponseEntity<List<CertificateRequest>> getMyRequests() {
+    try {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        Student student = studentRepository.findByUsername(username).orElse(null);
+        // Tìm student từ username
+        if (student == null) {
+            return ResponseEntity.ok(new ArrayList<>());
         }
+        
+        List<CertificateRequest> requests = certificateRequestService.getRequestsByStudent(student.getStudentCode());
+        return ResponseEntity.ok(requests);
+    } catch (Exception e) {
+        return ResponseEntity.ok(new ArrayList<>());
     }
-
+}
     @PostMapping
     public ResponseEntity<?> createRequest(@RequestBody Map<String, Object> requestData) {
         try {
@@ -109,7 +112,8 @@ public class CertificateRequestController {
             @RequestBody Map<String, Object> statusData) {
         try {
             String status = (String) statusData.get("status");
-            Long staffId = statusData.get("staffId") != null ? Long.valueOf(statusData.get("staffId").toString()) : null;
+            Long staffId = statusData.get("staffId") != null ? Long.valueOf(statusData.get("staffId").toString())
+                    : null;
 
             CertificateRequest updatedRequest = certificateRequestService.updateRequestStatus(id, status, staffId);
 
@@ -125,6 +129,5 @@ public class CertificateRequestController {
             return ResponseEntity.badRequest().body(error);
         }
     }
-
 
 }

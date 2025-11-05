@@ -32,41 +32,40 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(authz -> authz
-                            .requestMatchers(
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**",
-                    "/api-docs/**",
-                    "/swagger-resources/**",
-                    "/webjars/**",
-                    "/configuration/ui",
-                    "/configuration/security",
-                    "/api/test-service/**",
-                    "/api/v1/requests/*/verifydiploma",
-                    "/api/*/certificates",
-                    "/api/certificates/*/view"
-
-                ).permitAll()
-                .requestMatchers("/api/v1/requests/**",
-                    "/api/v1/requests/*/signrequest",
-                        "/api/v1/requests/sign",
-                    "/api/keys/generate"
-                    ).permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/certificate-requests/**").authenticated()
-                .requestMatchers("/api/users/profile").authenticated()
-                    .requestMatchers("/api/users/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/api/certificates/**").hasAnyRole("ADMIN", "STAFF")
-                    .requestMatchers("/api/certificate-requests/**").authenticated()
-                    .requestMatchers("/api/keys/**").hasRole("ADMIN")
-                    .requestMatchers("/api/users/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/configuration/ui",
+                                "/configuration/security",
+                                "/api/test-service/**",
+                                 "/api/v1/requests/*/verifydiploma", // Thêm pattern này
+                                "/api/*/verifydiploma", // Thêm pattern tổng quát
+                                "/api/*/certificates",
+                                "/api/certificates/*/view")
+                        .permitAll()
+                        .requestMatchers("/api/v1/requests/**",
+                                "/api/v1/requests/*/signrequest",
+                                "/api/v1/requests/sign",
+                                "/api/keys/generate")
+                        .permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/certificate-requests/**").authenticated()
+                        .requestMatchers("/api/users/profile").authenticated()
+                        .requestMatchers("/api/users/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/certificate-requests/**").authenticated()
+                        .requestMatchers("/api/certificates/**", "/api/download/**").permitAll()
+                        .requestMatchers("/api/keys/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

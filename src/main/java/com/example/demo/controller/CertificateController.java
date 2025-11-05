@@ -26,9 +26,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.net.URLEncoder;          // Cho URLEncoder
-import java.nio.charset.StandardCharsets;  // Cho UTF_8
-
+import java.net.URLEncoder; // Cho URLEncoder
+import java.nio.charset.StandardCharsets; // Cho UTF_8
 
 @RestController
 @RequestMapping("/api")
@@ -36,14 +35,16 @@ public class CertificateController {
     @Autowired
     private CertificateService certificateService;
 
-
     @PostMapping("/cert")
-    public ResponseEntity<String> addCertificate(@RequestParam String studentId, @RequestParam String password) throws Exception {
+    public ResponseEntity<String> addCertificate(@RequestParam String studentId, @RequestParam String password)
+            throws Exception {
         certificateService.create(studentId, password);
         return new ResponseEntity<>("Certificate created successfully", HttpStatus.CREATED);
     }
+
     @PostMapping("/cert/sign")
-    public ResponseEntity<Certificate> signCertificate(@RequestParam String certificateId, @RequestParam String staffId) throws Exception {
+    public ResponseEntity<Certificate> signCertificate(@RequestParam String certificateId, @RequestParam String staffId)
+            throws Exception {
         Certificate cert = certificateService.signCertificate(certificateId, staffId);
         return ResponseEntity.ok(cert);
     }
@@ -88,14 +89,13 @@ public class CertificateController {
         }
     }
 
-
-    @GetMapping("/{id}/pdf")
-    public ResponseEntity<byte[]> getCertificatePdf(@PathVariable String id) {
+    @GetMapping("/{certId}/pdf")
+    public ResponseEntity<byte[]> getCertificatePdf(@PathVariable String certId) {
         try {
-            byte[] pdfBytes = certificateService.getCertificatePdf(id);
+            byte[] pdfBytes = certificateService.getCertificatePdf(certId);
             return ResponseEntity.ok()
                     .header("Content-Type", "application/pdf")
-                    .header("Content-Disposition", "inline; filename=\"certificate_" + id + ".pdf\"")
+                    .header("Content-Disposition", "inline; filename=\"certificate_" + certId + ".pdf\"")
                     .body(pdfBytes);
         } catch (Exception e) {
             // Return a simple error message as text
@@ -107,27 +107,10 @@ public class CertificateController {
         }
     }
 
-    @PostMapping("/download/{id}")
-    public ResponseEntity<byte[]> downloadCertificate(@PathVariable String id) {
+    @GetMapping("/{certId}/pdf-exists")
+    public ResponseEntity<Map<String, Object>> checkCertificatePdfExists(@PathVariable String certId) {
         try {
-            byte[] pdfBytes = certificateService.getCertificatePdf(id);
-            return ResponseEntity.ok()
-                    .header("Content-Type", "application/pdf")
-                    .header("Content-Disposition", "attachment; filename=\"certificate_" + id + ".pdf\"")
-                    .body(pdfBytes);
-        } catch (Exception e) {
-            String errorMessage = "Certificate PDF not available for download. Error: " + e.getMessage();
-            byte[] errorBytes = errorMessage.getBytes();
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .header("Content-Type", "text/plain")
-                    .body(errorBytes);
-        }
-    }
-
-    @GetMapping("/{id}/pdf-exists")
-    public ResponseEntity<Map<String, Object>> checkCertificatePdfExists(@PathVariable String id) {
-        try {
-            boolean exists = certificateService.certificatePdfExists(id);
+            boolean exists = certificateService.certificatePdfExists(certId);
             Map<String, Object> response = new HashMap<>();
             response.put("exists", exists);
             return ResponseEntity.ok(response);
@@ -137,6 +120,7 @@ public class CertificateController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
+
     @GetMapping("{studentCode}/certificates")
     public ResponseEntity<?> getCertificatesByStudentCode(
             @PathVariable String studentCode,
@@ -144,49 +128,54 @@ public class CertificateController {
             @RequestParam(defaultValue = "50") int size) {
         try {
             Pageable pageable = PageRequest.of(page, size);
-            Page<CertificateDTO> certificatePage = certificateService.getCertificatesByStudentCodePaged(studentCode, pageable);
+            Page<CertificateDTO> certificatePage = certificateService.getCertificatesByStudentCodePaged(studentCode,
+                    pageable);
 
-            ApiResponse response = new ApiResponse(true, "SUCCESS", "Certificates loaded successfully", certificatePage);
+            ApiResponse response = new ApiResponse(true, "SUCCESS", "Certificates loaded successfully",
+                    certificatePage);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            ApiResponse errorResponse = new ApiResponse(false, "ERROR", "Failed to load certificates: " + e.getMessage(), null);
+            ApiResponse errorResponse = new ApiResponse(false, "ERROR",
+                    "Failed to load certificates: " + e.getMessage(), null);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
-    @GetMapping("/certificates/{certId}/view")
-    public ResponseEntity<StreamingResponseBody> viewCertificate(@PathVariable String certId, @RequestBody Map<String, String> body) {
-        
+
+    @PostMapping("/certificates/{certId}/view")
+    public ResponseEntity<StreamingResponseBody> viewCertificate(@PathVariable String certId,
+            @RequestBody Map<String, String> body) {
+
         try {
             String studentCode = body.get("studentCode");
             Certificate certificate = certificateService.getCertificateByCertIdAndStudentId(certId, studentCode);
-
+            System.out.println("certId và studentCode" + certId + " - " + studentCode);
             Path filePath = Paths.get(certificate.getPdf_uri());
-            String fileName = filePath.getFileName().toString();   
+            String fileName = filePath.getFileName().toString();
             if (!Files.exists(filePath)) {
-                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File không tồn tại");
-                    }
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File không tồn tại");
+            }
             StreamingResponseBody stream = outputStream -> {
-            Files.copy(filePath, outputStream);
-            outputStream.flush();
-        };
+                Files.copy(filePath, outputStream);
+                outputStream.flush();
+            };
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" +
-                        URLEncoder.encode(fileName, StandardCharsets.UTF_8) + "\"")
-                .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
-                .body(stream);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" +
+                            URLEncoder.encode(fileName, StandardCharsets.UTF_8) + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
+                    .body(stream);
 
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi khi tải file: " + e.getMessage());
         }
-        
+
     }
 
     public String getMethodName(@RequestParam String param) {
         return new String();
     }
-    
+
     @GetMapping("/expiration-stats")
     public ResponseEntity<Map<String, Object>> getExpirationStats() {
         try {

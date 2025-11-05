@@ -5,11 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
+import org.springframework.data.repository.query.Param;
 import java.util.Optional;
-import java.lang.StackWalker.Option;
 import java.util.List;
-
+import org.springframework.data.jpa.repository.Query;
 
 @Repository
 public interface CertificateRepository extends JpaRepository<Certificate, Long> {
@@ -19,6 +18,12 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
     List<Certificate> findByStatus(String status);
 
     Page<Certificate> findByStudentId(String studentCode, Pageable pageable);
-    Certificate findByCertIdAndStudentId(String certId, String studentId);
-
+    
+    // SỬA LẠI: Thay vì trả về Certificate, trả về Optional<Certificate>
+ @Query("SELECT c FROM Certificate c WHERE TRIM(c.certId) = TRIM(:certId) AND TRIM(c.studentId) = TRIM(:studentId)")
+    Optional<Certificate> findByCertIdAndStudentId(@Param("certId") String certId, 
+                                                   @Param("studentId") String studentId);    
+    
+    @Query("SELECT c FROM Certificate c WHERE c.certId LIKE %:certId% AND c.studentId LIKE %:studentId%")
+    Certificate findByCertIdContainingAndStudentIdContaining(@Param("certId") String certId, @Param("studentId") String studentId);
 }

@@ -8,10 +8,12 @@ public class CertificateDTO {
     private String expireAt;
     private String status;
     private String serialNumber;
+    private String pdfUri;
+    private String pdfSha256;
     public CertificateDTO() {
     }
     public CertificateDTO(Long id, String certId, String studentCode, String issueAt, String expireAt, String status,
-            String serialNumber) {
+            String serialNumber, String pdfUri, String pdfSha256) {
         this.id = id;
         this.certId = certId;
         this.studentCode = studentCode;
@@ -19,6 +21,8 @@ public class CertificateDTO {
         this.expireAt = expireAt;
         this.status = status;
         this.serialNumber = serialNumber;
+        this.pdfUri = pdfUri;
+        this.pdfSha256 = pdfSha256;
     }
     public Long getId() {
         return id;
@@ -61,5 +65,17 @@ public class CertificateDTO {
     }
     public void setSerialNumber(String serialNumber) {
         this.serialNumber = serialNumber;
+    }
+    public String getPdfUri() {
+        return pdfUri;
+    }
+    public void setPdfUri(String pdfUri) {
+        this.pdfUri = pdfUri;
+    }
+    public String getPdfSha256() {
+        return pdfSha256;
+    }
+    public void setPdfSha256(String pdfSha256) {
+        this.pdfSha256 = pdfSha256;
     }
 }
