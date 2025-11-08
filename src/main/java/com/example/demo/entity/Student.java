@@ -39,5 +39,4 @@ public class Student extends User {
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
     private List<StudentRequest> requests;
 
-    // Use Lombok-generated constructors; removed manual constructor that used UUID
 }
