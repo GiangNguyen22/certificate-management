@@ -1,11 +1,18 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.RegisterRequest;
+import com.example.demo.dto.request.ChangePasswordRequest;
+import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.entity.Staff;
 import com.example.demo.entity.Student;
 import com.example.demo.entity.User;
+import com.example.demo.service.StudentService;
 import com.example.demo.service.UserService;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +31,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private p12Service p12Service;
+    @Autowired
+    private StudentService studentService;
 
     @PostMapping("/staff")
     public ResponseEntity<Staff> createStaff(@RequestBody Staff staff) throws Exception {
@@ -126,4 +135,43 @@ public class UserController {
             return ResponseEntity.badRequest().body(error);
         }
     }
+
+    @PostMapping("/create")
+    public ResponseEntity<?> createUser(@RequestBody RegisterRequest request) {
+        User user = userService.createUserWithDefaultPassword(request);
+        return ResponseEntity.ok(Map.of(
+                "username", user.getUsername(),
+                "role", request.getRole()
+        ));
+    }
+
+    @DeleteMapping("/student/{studentCode}")
+    public ResponseEntity<ApiResponse> deleteStudent(@PathVariable String studentCode){
+        userService.deleteStudentByStudentCode(studentCode);
+
+        ApiResponse response = new ApiResponse(true, "Delete student successfully", "SUCCESS", null);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<Student>> searchStudents(@RequestParam(required = false) String studentCode,
+                                                        @RequestParam(required = false) String name,
+                                                        @RequestParam(required = false) String grade,
+                                                        Pageable pageable){
+        Page<Student> students = studentService.searchStudents(studentCode, name, grade, pageable);
+        return ResponseEntity.ok(students);
+    }
+
+    @PatchMapping("/student/change-password")
+    public ResponseEntity<ApiResponse> updatePassword(@RequestBody ChangePasswordRequest request, Authentication authentication){
+            String username = authentication.getName();
+            userService.updatePassword(username, request.getOldPassword(), request.getNewPassword());
+            ApiResponse response = new ApiResponse();
+            response.setSuccess(true);
+            response.setStatus("OK");
+            response.setMessage("Password updated successfully");
+            return ResponseEntity.ok(response);
+    }
+
+
 }

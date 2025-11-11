@@ -2,7 +2,11 @@ package com.example.demo.service;
 
 import com.example.demo.entity.Student;
 import com.example.demo.repository.StudentRepositoryI;
+import com.example.demo.specifications.StudentSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -30,9 +34,7 @@ public class StudentService{
     public Optional<Student> getStudent(Long id){
         return studentRepository.findById(id);
     }
-    // public Optional<Student> getStudentbyStudentCode(String studentCode){
-    //     return studentRepository.findByStudentCode(studentCode);
-    // }
+
 
     public Student getStudentByStudentCode(String studentCode) throws Exception {
         Optional<Student> studentOpt = studentRepository.findByStudentCode(studentCode);
@@ -40,6 +42,13 @@ public class StudentService{
             throw new Exception("Student not found with studentCode: " + studentCode);
         }
         return studentOpt.get();
+    }
+
+    public Page<Student> searchStudents(String studentCode, String name, String grade, Pageable pageable){
+        Specification<Student> spec = StudentSpecification.hasStudentCode(studentCode)
+                .and(StudentSpecification.hasNameLike(name))
+                .and(StudentSpecification.hasGrade(grade));
+        return studentRepository.findAll(spec, pageable);
     }
 
 }

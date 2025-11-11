@@ -1,19 +1,23 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.RegisterRequest;
+import com.example.demo.entity.Role;
 import com.example.demo.entity.Staff;
 import com.example.demo.entity.Student;
 import com.example.demo.entity.User;
-import com.example.demo.repository.StaffRepository;
-import com.example.demo.repository.StudentRepositoryI;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.exceptions.ResourceNotFoundEx;
+import com.example.demo.repository.*;
 import com.example.demo.service.interfaces.p12Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class UserService {
@@ -32,6 +36,13 @@ public class UserService {
 
     @Autowired
     private p12Service p12Service;
+    @Autowired
+    private CertificateRepository certificateRepository;
+    @Autowired
+    private CertificateRequestRepository certificateRequestRepository;
+    @Autowired
+    private RoleRepository roleRepository;
+
 
     public Staff createStaff(Staff staff) throws Exception {
         // Check if username already exists (simplified check)
@@ -189,4 +200,52 @@ public class UserService {
         return p12Service;
     }
 
+    @Transactional
+    public void deleteStudentByStudentCode(String studentCode) {
+        Student student = studentRepository.findByStudentCode(studentCode).orElseThrow(() ->
+                                new ResourceNotFoundEx("Not found student with studentCode "+ studentCode));
+        if(certificateRepository.existsByStudentId(studentCode) || certificateRequestRepository.existsByStudentRequestId(studentCode)){
+            throw new IllegalStateException("StudentCode đang được sử dụng ở bảng Certificate hoặc CertificateRequest");
+        }
+        certificateRepository.deleteByStudentId(studentCode);
+        certificateRequestRepository.deleteByStudentRequestId(studentCode);
+        studentRepository.delete(student);
+    }
+
+    public User createUserWithDefaultPassword(RegisterRequest request) {
+        if(userRepository.existsByUsername(request.getUsername())){
+            throw new RuntimeException("Username already exists");
+        }
+
+        User user;
+        if("STUDENT".equals(request.getRole())){
+            Student student = new Student();
+            student.setUsername(request.getUsername());
+            student.setPassword(passwordEncoder.encode("123456"));
+            Role role = roleRepository.findByName(request.getRole()).orElseThrow(() -> new ResourceNotFoundEx("Role not found"));
+            student.setRoles(Set.of(role));
+            user = student;
+        }else if("STAFF".equals(request.getRole())){
+            Staff staff = new Staff();
+            staff.setUsername(request.getUsername());
+            staff.setPassword(passwordEncoder.encode("123456"));
+            Role role = roleRepository.findByName(request.getRole()).orElseThrow(() -> new ResourceNotFoundEx("Role not found"));
+            staff.setRoles(Set.of(role));
+            user = staff;
+        }else{
+            User newUser = new User();
+            newUser.setUsername(request.getUsername());
+            newUser.setPassword(passwordEncoder.encode("123456"));
+            Role role = roleRepository.findByName(request.getRole()).orElseThrow(() -> new ResourceNotFoundEx("Role not found"));
+            newUser.setRoles(Set.of(role));
+            user = newUser;
+        }
+        return userRepository.save(user);
+
+    }
+
+    @Transactional
+    public void updatePassword(String username, String oldPassword, String newPassword) {
+
+    }
 }

@@ -18,7 +18,7 @@ import java.util.List;
 
 public class Student extends User {
 
-    @Column(name = "student_code", unique = true, nullable = false)
+    @Column(name = "student_code", unique = true)
     private String studentCode;
     @Column(name = "major_name")
     private String majorName;

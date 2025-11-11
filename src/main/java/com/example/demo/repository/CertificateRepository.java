@@ -26,4 +26,8 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
     
     @Query("SELECT c FROM Certificate c WHERE c.certId LIKE %:certId% AND c.studentId LIKE %:studentId%")
     Certificate findByCertIdContainingAndStudentIdContaining(@Param("certId") String certId, @Param("studentId") String studentId);
+
+    boolean existsByStudentId(String studentCode);
+
+    void deleteByStudentId(String studentCode);
 }

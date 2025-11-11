@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class Staff extends User {
 
     private String name;
-    @Column(name="staff_code", unique = true, nullable = false)
+    @Column(name="staff_code", unique = true)
     private String staffCode;
     private String position;
     @Column(name = "major_name")
