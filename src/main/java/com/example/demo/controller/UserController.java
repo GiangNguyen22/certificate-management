@@ -8,6 +8,7 @@ import com.example.demo.entity.Student;
 import com.example.demo.entity.User;
 import com.example.demo.service.StudentService;
 import com.example.demo.service.UserService;
+import org.apache.coyote.BadRequestException;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -163,7 +164,7 @@ public class UserController {
     }
 
     @PatchMapping("/student/change-password")
-    public ResponseEntity<ApiResponse> updatePassword(@RequestBody ChangePasswordRequest request, Authentication authentication){
+    public ResponseEntity<ApiResponse> updatePassword(@RequestBody ChangePasswordRequest request, Authentication authentication) throws BadRequestException {
             String username = authentication.getName();
             userService.updatePassword(username, request.getOldPassword(), request.getNewPassword());
             ApiResponse response = new ApiResponse();

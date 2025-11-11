@@ -8,8 +8,10 @@ import com.example.demo.entity.User;
 import com.example.demo.exceptions.ResourceNotFoundEx;
 import com.example.demo.repository.*;
 import com.example.demo.service.interfaces.p12Service;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -245,7 +247,25 @@ public class UserService {
     }
 
     @Transactional
-    public void updatePassword(String username, String oldPassword, String newPassword) {
+    public void updatePassword(String username, String oldPassword, String newPassword) throws BadRequestException {
+            User user = userRepository.findByUsername(username);
+            if(user!=null){
+                String oldPwd = oldPassword.trim();
+                String newPwd = newPassword.trim();
 
+                if (!passwordEncoder.matches(oldPwd, user.getPassword())) {
+                    throw new BadRequestException("Old password is incorrect");
+                }
+
+                if (passwordEncoder.matches(newPwd, user.getPassword())) {
+                    throw new BadRequestException("New password cannot be the same as old password");
+                }
+
+
+                user.setPassword(passwordEncoder.encode(newPwd));
+                userRepository.save(user);
+            }else{
+                throw new ResourceNotFoundEx("User not found");
+            }
     }
 }
