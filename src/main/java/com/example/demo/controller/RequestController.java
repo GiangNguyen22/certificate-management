@@ -6,21 +6,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.dto.VerifyResult;
-import com.example.demo.dto.request.CertificateSignDTO;
+import com.example.demo.dto.request.InfoEechStudentInResSign;
+import com.example.demo.dto.request.SignCertRequest;
 import com.example.demo.dto.response.ApiResponse;
-import com.example.demo.entity.User;
 import com.example.demo.repository.UserPubKeysRepository;
 import com.example.demo.utils.DigitalSignatureUtil;
 import com.example.demo.utils.ProcessSignUtil;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,72 +25,50 @@ import jakarta.validation.Valid;
 
 import com.example.demo.service.CertificateRequestService;
 
-import org.springframework.web.bind.annotation.RequestBody;
+//import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/v1/requests")
 public class RequestController {
-    private final CertificateRequestService certificateRequestService;
-
-    // Constructor injection for the service
-    public RequestController(CertificateRequestService certificateRequestService) {
-        this.certificateRequestService = certificateRequestService;
-    }
-
     @Autowired
     CertificateRequestService certRequestService;
 
-    // Giam doc thuc hien ky yeu cau van bang cua hoc sinh
-    @PostMapping(value = "/sign", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> signRequest(@Valid @ModelAttribute CertificateSignDTO requestDTO) {
-        String p12Path = null;
-        System.out.println("Request Code: " + requestDTO.getRequestCode());
-        System.out.println("Student Code: " + requestDTO.getStudentCode());
-        System.out.println("Staff Code: " + requestDTO.getStaffCode());
-        System.out.println("Keystore Password: " + requestDTO.getKeystorePass());
-        System.out.println("Alias: " + requestDTO.getAlias());
-
-        String statusRequest = certRequestService.findStatusByRequestCode(requestDTO.getRequestCode());
-        if ("APPROVED".equals(statusRequest)) {
-            try {
-                MultipartFile p12File = requestDTO.getP12File();
-                p12Path = TempFileUtil.saveTempFile(p12File);
-                String signedPath = ProcessSignUtil.completeSign(
-                        requestDTO.getRequestCode(),
-                        requestDTO.getStudentCode(),
-                        requestDTO.getStaffCode(),
-                        p12Path,
-                        requestDTO.getKeystorePass(),
-                        requestDTO.getAlias()
+    // Giam doc thuc hien ky VAN BANG, CHUNG CHI
+    @PostMapping(value = "/sign-certificate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> signCertificate(
+            @Valid @ModelAttribute SignCertRequest signCertRequest) {
+        String p12FilePath = null;
+                try {
+            MultipartFile p12File = signCertRequest.getP12File();
+            p12FilePath = TempFileUtil.saveTempFile(p12File);
+            String templateId = signCertRequest.getTemplateId();
+            String staffCode = signCertRequest.getStaffCode();
+            String keyStorePassword = signCertRequest.getKeystorePass();
+        
+            List<InfoEechStudentInResSign> students = signCertRequest.getStudents();
+            for (InfoEechStudentInResSign student : students) {
+                ProcessSignUtil.completeSign(
+                    templateId, student.getStudentCode(),
+                    staffCode, p12FilePath,
+                    keyStorePassword,staffCode, student                    
 
                 );
-
-                Map<String, String> data = new HashMap<>();
-                data.put("signedFilePath", signedPath);
-                ApiResponse response = new ApiResponse(true, "SUCCESS", "Request signed successfully", data);
-
-                return ResponseEntity.ok(response);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                ApiResponse response = new ApiResponse(false, "ERROR", "Error signing request: " + e.getMessage(),
-                        null);
-                return ResponseEntity.status(500).body(response);
-            } finally {
-                if (p12Path != null) {
-                    TempFileUtil.deleteTempFile(p12Path);
+            }
+            TempFileUtil.deleteTempFile(p12FilePath);
+           
+            ApiResponse response = new ApiResponse(true, "SUCCESS",
+                    "All certificates signed successfully", null);
+            return ResponseEntity.ok(response);
+                }
+                catch (Exception e) {
+                    ApiResponse response = new ApiResponse(false, "ERROR", 
+                        e.getMessage(), null);
+                    return ResponseEntity.status(500).body(response);
                 }
             }
-
-        } else {
-            ApiResponse response = new ApiResponse(false, "INVALID_REQUEST", "Request is INVALID status", null);
-            return ResponseEntity.badRequest().body(response);
-        }
-
-    }
-
     // Hoc sinh tao yeu cau lay Van Bang gui cho Giam Doc ky
-    @PostMapping("/{studentcode}/signrequest")
+    /* 
+        @PostMapping("/{studentcode}/signrequest")
     public ResponseEntity<?> signRequest(@PathVariable("studentcode") String studentCode,
             @RequestBody(required = false) Map<String, String> body) {
         // Kiểm tra body
@@ -127,6 +100,8 @@ public class RequestController {
         }
 
     }
+    */
+ 
 
     @Autowired
     UserPubKeysRepository userPKRepo;

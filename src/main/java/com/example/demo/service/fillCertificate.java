@@ -17,32 +17,37 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import com.example.demo.entity.Student;
+import com.example.demo.entity.Template;
 import com.example.demo.repository.StudentRepositoryI;
+import com.example.demo.service.interfaces.TemplateService;
+import com.example.demo.dto.request.InfoEechStudentInResSign;
 
 @Service
 public class fillCertificate {
 
     @Autowired
     private StudentRepositoryI studentRepository;
-
-    public String generateCertificate(String studentCode) throws Exception {
+    @Autowired
+    private TemplateService templateService;
+    public String generateCertificate(String studentCode, String templateId, InfoEechStudentInResSign studentInfo) throws Exception {
         Optional<Student> studentOpt = studentRepository.findByStudentCode(studentCode);
         if (studentOpt.isEmpty()) {
             throw new Exception("Student not found with studentCode: " + studentCode);
         }
-        Student student = studentOpt.get();
-
+        //Student student = studentOpt.get();
+        Template template = templateService.getTemplateById(templateId);
+        String nameTemplate = template.getName();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         String issuedDate = LocalDate.now().format(formatter);
 
         File outDir = new File("certificates");
         if (!outDir.exists()) outDir.mkdirs();
-        String outputPath = outDir.getAbsolutePath() + "/" + student.getStudentCode() + "_certificate.pdf";
+        String outputPath = outDir.getAbsolutePath() + "/" + studentInfo.getStudentCode() + "_certificate.pdf";
 
         // Đọc PDF template từ resources thành byte[]
-        try (InputStream is = getClass().getResourceAsStream("/templates/Cert.pdf")) {
+        try (InputStream is = getClass().getResourceAsStream("/templates/"+nameTemplate)) {
             if (is == null) {
-                throw new FileNotFoundException("Template PDF not found at /templates/Cert.pdf");
+                throw new FileNotFoundException("Template PDF not found at /templates/"+nameTemplate);
             }
             byte[] pdfBytes = is.readAllBytes();
             //vi doc file tu resources nen: Inputstream -> byte[]->Loader.loadPDF(byte[])
@@ -72,13 +77,13 @@ public class fillCertificate {
                         // Name - Get from User entity (parent class)
                         cs.beginText();
                         cs.newLineAtOffset(330, 300);
-                        cs.showText(student.getFullName());
+                        cs.showText(studentInfo.getName());
                         cs.endText();
 
                         // Date of Birth - Get from User entity (parent class)
                         cs.beginText();
                         cs.newLineAtOffset(330, 278);
-                        cs.showText(student.getDob() != null ? student.getDob().format(formatter) : "N/A");
+                        cs.showText(studentInfo.getDob());
                         cs.endText();
 
                         // Student Code
@@ -96,12 +101,12 @@ public class fillCertificate {
                         // Graduation Year
                         cs.beginText();
                         cs.newLineAtOffset(330, 250);
-                        cs.showText(student.getStartYear());
+                        cs.showText(studentInfo.getTimeStudied());
                         cs.endText();
 
                         // Classification - Use xepLoai from database
-                        String classification = student.getXepLoai() != null && !student.getXepLoai().isEmpty()
-                            ? student.getXepLoai()
+                        String classification = studentInfo.getXepLoai() != null && !studentInfo.getXepLoai().isEmpty()
+                            ? studentInfo.getXepLoai()
                             : "Giỏi"; // Default fallback
                         cs.beginText();
                         cs.newLineAtOffset(330, 223);
@@ -109,7 +114,7 @@ public class fillCertificate {
                         cs.endText();
 
                         // Certificate No
-                        String certNo = "CERT-" + student.getStudentCode();
+                        String certNo = "CERT-" + studentInfo.getStudentCode();
                         cs.beginText();
                         cs.newLineAtOffset(230, 125);
                         cs.showText(certNo);

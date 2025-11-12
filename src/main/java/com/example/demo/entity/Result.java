@@ -27,5 +27,6 @@ public class Result {
     private Double score;
     private String grade;
     private String semester;
+    private String timeStudied;
 
 }

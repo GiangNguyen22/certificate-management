@@ -49,7 +49,8 @@ public class SecurityConfig {
                                  "/api/v1/requests/*/verifydiploma", // Thêm pattern này
                                 "/api/*/verifydiploma", // Thêm pattern tổng quát
                                 "/api/*/certificates",
-                                "/api/certificates/*/view")
+                                "/api/certificates/*/view",
+                                "/api/test-service/sign")
                         .permitAll()
                         .requestMatchers("/api/v1/requests/**",
                                 "/api/v1/requests/*/signrequest",

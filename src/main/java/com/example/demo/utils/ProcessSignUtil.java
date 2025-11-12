@@ -17,12 +17,16 @@ import com.example.demo.service.interfaces.CertService;
 import ch.qos.logback.core.testUtil.RandomUtil;
 
 import com.example.demo.config.AppContext;
+import com.example.demo.dto.request.InfoEechStudentInResSign;
 
 public class ProcessSignUtil {
 
     
 
-    public static String completeSign(String requestCode, String studentCode, String staffCode, String keyStorePath, String keyStorePassword, String alias) throws Exception {
+    public static String completeSign(String templateId,String studentCode,
+                                     String staffCode, String keyStorePath, 
+                                     String keyStorePassword, String alias, 
+                                     InfoEechStudentInResSign studentInfo) throws Exception {
        
     // obtain Spring-managed fillCertificate bean so its @Autowired studentRepository is initialized
 
@@ -34,7 +38,7 @@ public class ProcessSignUtil {
         char[] pwdArray = keyStorePassword.toCharArray();
         KeyStore keystore = KeyStore.getInstance("PKCS12");
         keystore.load(new FileInputStream(keyStorePath), pwdArray);
-        String rawPdfPath = fillCert.generateCertificate(studentCode);
+        String rawPdfPath = fillCert.generateCertificate(studentCode, templateId, studentInfo);
         String hashOfPdf = PdfSignerUtil.hashFile(rawPdfPath);
         PrivateKey privateKey = (PrivateKey) keystore.getKey(alias, pwdArray);
         X509Certificate certificate = (X509Certificate) keystore.getCertificate(alias);
@@ -43,7 +47,7 @@ public class ProcessSignUtil {
         String pathDocSigned = PdfSignerUtil.signInternalSignatureInPdf(rawPdfPath, studentCode, privateKey, keystore.getCertificateChain(alias));
         // String pathDocSigned = PdfSignerUtil.embedSignatureInPdf(rawPdfPath, studentCode, signature, keystore.getCertificateChain(alias));
        String certId = UUID.randomUUID().toString() + "-" + studentCode;
-       String templateId = "template-001"; // Example template ID
+       //String templateId = "template-001"; // Example template ID
          String studentId = studentCode; // Assuming studentCode is used as studentId
          String issuedAt = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); 
          String expireAt = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000L)); // 1 year later
@@ -52,7 +56,7 @@ public class ProcessSignUtil {
 
         certService.saveCertificateRecord(certId, templateId, studentId,staffCode, issuedAt, expireAt, status, serialNo, pathDocSigned, hashOfPdf);
 
-        certRequestService.updateStatusOfRequest(requestCode, "SIGNED");
+        //certRequestService.updateStatusOfRequest(requestCode, "SIGNED");
         return pathDocSigned;
     }
 }

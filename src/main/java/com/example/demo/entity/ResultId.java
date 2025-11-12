@@ -14,4 +14,5 @@ import java.io.Serializable;
 public class ResultId implements Serializable {
     private String studentCode;
     private String courseCode;
+ 
 }

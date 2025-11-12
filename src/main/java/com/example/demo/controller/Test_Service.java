@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.dto.VerifyResult;
 import com.example.demo.dto.request.CertificateSignDTO;
+import com.example.demo.dto.request.InfoEechStudentInResSign;
+import com.example.demo.dto.request.SignCertRequest;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.repository.UserPubKeysRepository;
 import com.example.demo.utils.DigitalSignatureUtil;
@@ -46,40 +49,43 @@ public class Test_Service {
         }
 
     }
+    
+    /*
+     * 
+     */
     @PostMapping(
     value = "/sign",
     consumes = MediaType.MULTIPART_FORM_DATA_VALUE
 )
-    public ResponseEntity<?> signpdf(@Valid @ModelAttribute CertificateSignDTO requestDTO) {
-        String p12Path = null;
-        try{
-            MultipartFile p12File = requestDTO.getP12File();
-            p12Path = TempFileUtil.saveTempFile(p12File);
-            String signedPath = ProcessSignUtil.completeSign(
-                requestDTO.getRequestCode(),
-                requestDTO.getStudentCode(),
-                requestDTO.getStaffCode(),
-                p12Path,
-                requestDTO.getKeystorePass(),
-                requestDTO.getAlias()
-            );
-            Map<String, String> data = new HashMap<>();
-            data.put("signedFilePath", signedPath);
-            ApiResponse response = new ApiResponse(true, "SUCCESS", "Request signed successfully", data);
+    public ResponseEntity<?> signCertificate(
+            @Valid @ModelAttribute SignCertRequest signCertRequest) {
+        String p12FilePath = null;
+                try {
+            MultipartFile p12File = signCertRequest.getP12File();
+            p12FilePath = TempFileUtil.saveTempFile(p12File);
+            String templateId = signCertRequest.getTemplateId();
+            String staffCode = signCertRequest.getStaffCode();
+            String keyStorePassword = signCertRequest.getKeystorePass();
+        
+            List<InfoEechStudentInResSign> students = signCertRequest.getStudents();
+            for (InfoEechStudentInResSign student : students) {
+                ProcessSignUtil.completeSign(
+                    templateId, student.getStudentCode(),
+                    staffCode, p12FilePath,
+                    keyStorePassword,staffCode, student                    
 
-            return ResponseEntity.ok(response);
-
-        }
-        catch(Exception e){
-            e.printStackTrace();
-            ApiResponse response = new ApiResponse(false, "ERROR", "Error signing request: " + e.getMessage(), null);
-            return ResponseEntity.status(500).body(response);
-        }
-        finally{
-            if(p12Path != null){
-                TempFileUtil.deleteTempFile(p12Path);
+                );
             }
-        }
-
-    }
+            TempFileUtil.deleteTempFile(p12FilePath);
+           
+            ApiResponse response = new ApiResponse(true, "SUCCESS",
+                    "All certificates signed successfully", null);
+            return ResponseEntity.ok(response);
+                }
+                catch (Exception e) {
+                    ApiResponse response = new ApiResponse(false, "ERROR", 
+                        e.getMessage(), null);
+                    return ResponseEntity.status(500).body(response);
+                }
+            }
 }

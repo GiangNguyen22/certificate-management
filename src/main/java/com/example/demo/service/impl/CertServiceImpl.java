@@ -22,8 +22,9 @@ public class CertServiceImpl implements CertService {
     @Autowired
     private com.example.demo.repository.CertificateRepository certRepo;
 
-    @Override
-    public String createCertificateForStudent(String studentCode) throws Exception {
+ /*
+     @Override
+    public String createCertificateForStudent(String studentCode,String templateId, InfoEechStudentInResSign studentInfo) throws Exception {
         Student student = studentService.getStudentByStudentCode(studentCode);
 
         // validate GPA
@@ -39,10 +40,11 @@ public class CertServiceImpl implements CertService {
         }
 
         // generate the certificate PDF (path returned) — keep return type void per interface
-        String pdfPath = fillCert.generateCertificate(studentCode);
+        String pdfPath = fillCert.generateCertificate(studentCode, templateId);
         // TODO: persist certificate record or log the generated path
         return pdfPath;
     }
+  */
 
     @Autowired
     private CertificateRepository certrepo;
