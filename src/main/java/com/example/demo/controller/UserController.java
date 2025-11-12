@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.example.demo.service.interfaces.p12Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/users")
@@ -173,6 +174,13 @@ public class UserController {
             response.setMessage("Password updated successfully");
             return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/student/import")
+    public ResponseEntity<ApiResponse> importStudents(@RequestParam("file") MultipartFile file) {
+        ApiResponse response = userService.importStudents(file);
+        return ResponseEntity.ok(response);
+    }
+
 
 
 }

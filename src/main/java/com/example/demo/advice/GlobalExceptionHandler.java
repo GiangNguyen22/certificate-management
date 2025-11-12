@@ -1,5 +1,6 @@
 package com.example.demo.advice;
 
+import com.example.demo.exceptions.DuplicateResourceException;
 import com.example.demo.exceptions.ResourceNotFoundEx;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of(
                         "error", "Conflict",
-                        "message", "Student đang được tham chiếu ở bảng khác",
+                        "message", "Có khóa ngoại đang được tham chiếu ở bảng khác",
                         "status", 409
                 ));
     }
