@@ -63,6 +63,7 @@ public class Test_Service {
                 try {
             MultipartFile p12File = signCertRequest.getP12File();
             p12FilePath = TempFileUtil.saveTempFile(p12File);
+            String courseCode = signCertRequest.getCourseCode();
             String templateId = signCertRequest.getTemplateId();
             String staffCode = signCertRequest.getStaffCode();
             String keyStorePassword = signCertRequest.getKeystorePass();
@@ -72,7 +73,8 @@ public class Test_Service {
                 ProcessSignUtil.completeSign(
                     templateId, student.getStudentCode(),
                     staffCode, p12FilePath,
-                    keyStorePassword,staffCode, student                    
+                    keyStorePassword,staffCode, 
+                    student ,courseCode                   
 
                 );
             }

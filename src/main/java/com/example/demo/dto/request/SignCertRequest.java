@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class SignCertRequest {
     @NotNull @Min(1) private String templateId;
+    @NotNull private String courseCode;
     @NotNull private String staffCode;
     @NotNull private String alias;
     @NotNull private String keystorePass;

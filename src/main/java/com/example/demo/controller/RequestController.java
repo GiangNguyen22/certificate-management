@@ -42,6 +42,7 @@ public class RequestController {
             MultipartFile p12File = signCertRequest.getP12File();
             p12FilePath = TempFileUtil.saveTempFile(p12File);
             String templateId = signCertRequest.getTemplateId();
+            String courseCode = signCertRequest.getCourseCode();
             String staffCode = signCertRequest.getStaffCode();
             String keyStorePassword = signCertRequest.getKeystorePass();
         
@@ -50,8 +51,8 @@ public class RequestController {
                 ProcessSignUtil.completeSign(
                     templateId, student.getStudentCode(),
                     staffCode, p12FilePath,
-                    keyStorePassword,staffCode, student                    
-
+                    keyStorePassword,staffCode, student,                    
+                    courseCode
                 );
             }
             TempFileUtil.deleteTempFile(p12FilePath);

@@ -31,6 +31,7 @@ public class Certificate {
     private String serial_no;   // vd: 2025_IT_01234
     private String pdf_uri;
     private String pdf_sha256;
+    private String course_code;
 
 }
 
