@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -292,12 +293,13 @@ public class UserService {
             for (Row row : sheet) {
                 if (row.getRowNum() == 0) continue; // skip header
 
-                String studentCode = getCellString(row.getCell(0));
-                String fullName = getCellString(row.getCell(1));
-                LocalDate dob = getCellDate(row.getCell(2));
-                String email = getCellString(row.getCell(3));
-                String phone = getCellString(row.getCell(4));
-                Integer departmentId = getCellInteger(row.getCell(5));
+                String username = getCellString(row.getCell(0));
+                String studentCode = getCellString(row.getCell(1));
+                String fullName = getCellString(row.getCell(2));
+                LocalDate dob = getCellDate(row.getCell(3));
+                String email = getCellString(row.getCell(4));
+                String phone = getCellString(row.getCell(5));
+                Integer departmentId = getCellInteger(row.getCell(6));
 
                 List<String> errors = new ArrayList<>();
 
@@ -329,7 +331,7 @@ public class UserService {
                     continue;
                 }
 
-                Student student = studentRepository.findByStudentCode(studentCode).orElse(null);
+                Student student = studentRepository.findByUsername(username).orElse(null);
                 if (student == null) {
                     errorCount++;
                     errorRows.add(new String[]{
@@ -342,6 +344,7 @@ public class UserService {
                     continue;
                 }
 
+                student.setStudentCode(studentCode);
                 student.setFullName(fullName);
                 student.setDob(dob);
                 student.setEmail(email);
@@ -375,34 +378,40 @@ public class UserService {
     }
 
 
-    private String getCellString(Cell cell){
-        if(cell == null) return null;
-        if(cell.getCellType() == CellType.STRING){
-            return cell.getStringCellValue().trim();
+    private String getCellString(Cell cell) {
+        if (cell == null) return null;
+        switch (cell.getCellType()) {
+            case STRING: return cell.getStringCellValue().trim();
+            case NUMERIC: return String.valueOf((int) cell.getNumericCellValue());
+            case BOOLEAN: return String.valueOf(cell.getBooleanCellValue());
+            default: return null;
+        }
+    }
+
+    private Integer getCellInteger(Cell cell) {
+        if (cell == null) return null;
+        switch (cell.getCellType()) {
+            case NUMERIC: return (int) cell.getNumericCellValue();
+            case STRING:
+                try { return Integer.parseInt(cell.getStringCellValue().trim()); }
+                catch (NumberFormatException e) { return null; }
+            default: return null;
+        }
+    }
+
+    private LocalDate getCellDate(Cell cell) {
+        if (cell == null) return null;
+        if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+            return cell.getLocalDateTimeCellValue().toLocalDate();
+        }
+        if (cell.getCellType() == CellType.STRING) {
+            try { return LocalDate.parse(cell.getStringCellValue(), DateTimeFormatter.ofPattern("M/d/yyyy")); }
+            catch (Exception e) { return null; }
         }
         return null;
     }
 
-    private LocalDate getCellDate(Cell cell){
-        if(cell == null) return null;
-        try{
-            return cell.getLocalDateTimeCellValue().toLocalDate();
-        }catch (Exception e){
-            return null;
-        }
-    }
 
-    private Integer getCellInteger(Cell cell){
-        if(cell ==  null) return null;
-        if(cell.getCellType() == CellType.NUMERIC){
-            return (int) cell.getNumericCellValue();
-        }
-        try{
-            return Integer.parseInt(cell.getStringCellValue().trim());
-        }catch (Exception e){
-            return null;
-        }
-    }
 
     private String exportErrorFile(List<String[]> errorRows) throws IOException {
         Workbook workbook = new XSSFWorkbook();
@@ -430,7 +439,7 @@ public class UserService {
         new File(dirPath).mkdirs();
 
         // File path
-        String filename = "error_import_" + LocalDate.now() + ".xlsx";
+        String filename = "error_import_" + LocalDate.now() + "_" + System.currentTimeMillis() + ".xlsx";
         String filePath = dirPath + filename;
 
         // Ghi file 
