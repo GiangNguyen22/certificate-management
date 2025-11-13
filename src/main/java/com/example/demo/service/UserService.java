@@ -2,18 +2,13 @@ package com.example.demo.service;
 
 import com.example.demo.dto.RegisterRequest;
 import com.example.demo.dto.response.ApiResponse;
-import com.example.demo.entity.Role;
-import com.example.demo.entity.Staff;
-import com.example.demo.entity.Student;
-import com.example.demo.entity.User;
+import com.example.demo.entity.*;
 import com.example.demo.exceptions.ResourceNotFoundEx;
 import com.example.demo.repository.*;
 import com.example.demo.service.interfaces.p12Service;
 import org.apache.coyote.BadRequestException;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
@@ -52,6 +49,8 @@ public class UserService {
     private RoleRepository roleRepository;
     @Autowired
     private DepartmentRepository departmentRepository;
+    @Autowired
+    private CourseRepository courseRepository;
 
 
     public Staff createStaff(Staff staff) throws Exception {
@@ -284,47 +283,181 @@ public class UserService {
 
         int successCount = 0;
         int errorCount = 0;
+        Set<String> studentCodeInFile = new HashSet<>();
 
-        Set<String> useNameInFile = new HashSet<>();
-
-        try(InputStream is = file.getInputStream()){
+        try (InputStream is = file.getInputStream()) {
             Workbook workbook = WorkbookFactory.create(is);
-            Sheet sheet =  workbook.getSheetAt(0);
-            for(Row row : sheet ){
-                if(row.getRowNum() == 0) continue;
-//                String studentCode = row.getCellString(row.getCell(0));
-//                String fullName = row.getCellString(row.getCell(1));
-//                LocalDate dob = row.getCellDate(row.getCell(2));
-//                String email = row.getCellString(row.getCell(3));
-//                String phone = row.getCellString(row.getCell(4));
-//                Integer departmentId = row.getCellInteger(row.getCell(5));
+            Sheet sheet = workbook.getSheetAt(0);
+
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0) continue; // skip header
+
+                String studentCode = getCellString(row.getCell(0));
+                String fullName = getCellString(row.getCell(1));
+                LocalDate dob = getCellDate(row.getCell(2));
+                String email = getCellString(row.getCell(3));
+                String phone = getCellString(row.getCell(4));
+                Integer departmentId = getCellInteger(row.getCell(5));
 
                 List<String> errors = new ArrayList<>();
-//
-//                if(studentCode == null || studentCode.trim().isEmpty()){
-//                    errors.add("Student code is empty");
-//                }
-//                if(fullName == null || fullName.trim().isEmpty()){
-//                    errors.add("Full name is empty");
-//                }
-//                if(dob != null && dob.isAfter(LocalDate.now())){
-//                    errors.add("Dob can not be in future");
-//                }
-//
-//                if(departmentId == null || !departmentRepository.existsById(departmentId)){
-//                    errors.add("Invalid department");
-//                }
 
+                if (studentCode == null || studentCode.trim().isEmpty()) {
+                    errors.add("Student code is empty");
+                }
+                if (fullName == null || fullName.trim().isEmpty()) {
+                    errors.add("Full name is empty");
+                }
+                if (dob != null && dob.isAfter(LocalDate.now())) {
+                    errors.add("Date of birth cannot be in the future");
+                }
+                if (departmentId == null || !departmentRepository.existsById(departmentId)) {
+                    errors.add("Invalid department");
+                }
+                if (!studentCodeInFile.add(studentCode)) {
+                    errors.add("Duplicate student code in file");
+                }
 
+                if (!errors.isEmpty()) {
+                    errorCount++;
+                    errorRows.add(new String[]{
+                            String.valueOf(row.getRowNum() + 1),
+                            studentCode, fullName,
+                            dob != null ? dob.toString() : "",
+                            email, phone,
+                            String.join("; ", errors)
+                    });
+                    continue;
+                }
 
+                Student student = studentRepository.findByStudentCode(studentCode).orElse(null);
+                if (student == null) {
+                    errorCount++;
+                    errorRows.add(new String[]{
+                            String.valueOf(row.getRowNum() + 1),
+                            studentCode, fullName,
+                            dob != null ? dob.toString() : "",
+                            email, phone,
+                            "Student with this student code not found"
+                    });
+                    continue;
+                }
 
+                student.setFullName(fullName);
+                student.setDob(dob);
+                student.setEmail(email);
+                student.setPhone(phone);
+                student.setDepartmentId(departmentId);
+                studentRepository.save(student);
+                successCount++;
             }
+
+            workbook.close();
+
+            String errorFilePath = null;
+            if (!errorRows.isEmpty()) {
+                errorFilePath = exportErrorFile(errorRows);
+            }
+
+            response.setSuccess(true);
+            response.setStatus("OK");
+            response.setMessage("Import completed");
+            response.setData(Map.of(
+                    "successCount", successCount,
+                    "errorCount", errorCount,
+                    "errorFilePath", errorFilePath
+            ));
+
+            return response;
+
         } catch (IOException e) {
-            throw new RuntimeException("Failed to import "+ e.getMessage());
+            throw new RuntimeException("Failed to import: " + e.getMessage());
+        }
+    }
+
+
+    private String getCellString(Cell cell){
+        if(cell == null) return null;
+        if(cell.getCellType() == CellType.STRING){
+            return cell.getStringCellValue().trim();
+        }
+        return null;
+    }
+
+    private LocalDate getCellDate(Cell cell){
+        if(cell == null) return null;
+        try{
+            return cell.getLocalDateTimeCellValue().toLocalDate();
+        }catch (Exception e){
+            return null;
+        }
+    }
+
+    private Integer getCellInteger(Cell cell){
+        if(cell ==  null) return null;
+        if(cell.getCellType() == CellType.NUMERIC){
+            return (int) cell.getNumericCellValue();
+        }
+        try{
+            return Integer.parseInt(cell.getStringCellValue().trim());
+        }catch (Exception e){
+            return null;
+        }
+    }
+
+    private String exportErrorFile(List<String[]> errorRows) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Errors");
+
+        Row header = sheet.createRow(0);
+        header.createCell(0).setCellValue("Line");
+        header.createCell(1).setCellValue("Username");
+        header.createCell(2).setCellValue("Full Name");
+        header.createCell(3).setCellValue("Email");
+        header.createCell(4).setCellValue("Phone");
+        header.createCell(5).setCellValue("Errors");
+
+        // Dữ liệu lỗi
+        int rowIdx = 1;
+        for (String[] rowData : errorRows) {
+            Row row = sheet.createRow(rowIdx++);
+            for (int i = 0; i < rowData.length; i++) {
+                row.createCell(i).setCellValue(rowData[i] != null ? rowData[i] : "");
+            }
         }
 
-        return new ApiResponse();
+        // Tạo folder nếu chưa tồn tại
+        String dirPath = "uploads/errors/";
+        new File(dirPath).mkdirs();
+
+        // File path
+        String filename = "error_import_" + LocalDate.now() + ".xlsx";
+        String filePath = dirPath + filename;
+
+        // Ghi file 
+        try (FileOutputStream out = new FileOutputStream(filePath)) {
+            workbook.write(out);
+        }
+
+        workbook.close();
+        return filePath;
+    }
 
 
+    public Student enrollStudentInCourse(String studentCode, String courseCode) {
+        Student student = studentRepository.findByStudentCode(studentCode)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        Course course = courseRepository.findByCourseCode(courseCode)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        student.getCourses().add(course);
+        return studentRepository.save(student);
+    }
+
+    public Set<Course> getCoursesByStudentCode(String studentCode) {
+        Student student = studentRepository.findByStudentCode(studentCode)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        return student.getCourses();
     }
 }

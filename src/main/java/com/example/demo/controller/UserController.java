@@ -181,6 +181,26 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/{studentCode}/courses/{courseCode}/enroll")
+    public ResponseEntity<ApiResponse> enrollStudentInCourse(@PathVariable String studentCode, @PathVariable String courseCode) {
 
+        ApiResponse response = new ApiResponse();
+        response.setSuccess(true);
+        response.setStatus("OK");
+        response.setData(userService.enrollStudentInCourse(studentCode, courseCode));
+        response.setMessage("Student enrolled in course successfully");
+        return ResponseEntity.ok(response);
+
+    }
+
+    @GetMapping("student/{studentCode}/courses")
+    public ResponseEntity<ApiResponse> getCoursesByStudentCode(@PathVariable String studentCode) {
+        ApiResponse response = new ApiResponse();
+        response.setSuccess(true);
+        response.setStatus("OK");
+        response.setData(userService.getCoursesByStudentCode(studentCode));
+        response.setMessage("Get courses by student code successfully");
+        return ResponseEntity.ok(response);
+    }
 
 }

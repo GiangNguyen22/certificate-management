@@ -18,6 +18,16 @@ public class TemplateController {
         this.templateService = templateService;
     }
 
+    @GetMapping
+    public ResponseEntity<ApiResponse> getAllTemplates() {
+        ApiResponse response = new ApiResponse();
+        response.setSuccess(true);
+        response.setStatus("OK");
+        response.setMessage("Templates retrieved successfully");
+        response.setData(templateService.getAllTemplates());
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/add-template")
     public ResponseEntity<ApiResponse> addTemplate(
             @RequestPart("template") Template template,
