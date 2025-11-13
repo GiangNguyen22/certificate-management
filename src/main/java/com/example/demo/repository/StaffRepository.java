@@ -11,4 +11,6 @@ public interface StaffRepository extends JpaRepository<Staff, Long> {
     // Custom query methods (if needed) can be defined here
     Optional<Staff> findByStaffCode(@Param("staffCode") String staffCode);
     Optional<Staff> findByUsername(String username);
+
+    boolean existsByStaffCode(String staffCode);
 }

@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.RegisterRequest;
+import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.Staff;
 import com.example.demo.entity.Student;
@@ -9,15 +10,20 @@ import com.example.demo.exceptions.ResourceNotFoundEx;
 import com.example.demo.repository.*;
 import com.example.demo.service.interfaces.p12Service;
 import org.apache.coyote.BadRequestException;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDate;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -42,6 +48,8 @@ public class UserService {
     private CertificateRequestRepository certificateRequestRepository;
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private DepartmentRepository departmentRepository;
 
 
     public Staff createStaff(Staff staff) throws Exception {
@@ -265,5 +273,56 @@ public class UserService {
             }else{
                 throw new ResourceNotFoundEx("User not found");
             }
+    }
+
+    @Transactional
+    public ApiResponse importStudents(MultipartFile file) {
+        ApiResponse response = new ApiResponse();
+        List<String[]> errorRows = new ArrayList<>();
+
+        int successCount = 0;
+        int errorCount = 0;
+
+        Set<String> useNameInFile = new HashSet<>();
+
+        try(InputStream is = file.getInputStream()){
+            Workbook workbook = WorkbookFactory.create(is);
+            Sheet sheet =  workbook.getSheetAt(0);
+            for(Row row : sheet ){
+                if(row.getRowNum() == 0) continue;
+//                String studentCode = row.getCellString(row.getCell(0));
+//                String fullName = row.getCellString(row.getCell(1));
+//                LocalDate dob = row.getCellDate(row.getCell(2));
+//                String email = row.getCellString(row.getCell(3));
+//                String phone = row.getCellString(row.getCell(4));
+//                Integer departmentId = row.getCellInteger(row.getCell(5));
+
+                List<String> errors = new ArrayList<>();
+//
+//                if(studentCode == null || studentCode.trim().isEmpty()){
+//                    errors.add("Student code is empty");
+//                }
+//                if(fullName == null || fullName.trim().isEmpty()){
+//                    errors.add("Full name is empty");
+//                }
+//                if(dob != null && dob.isAfter(LocalDate.now())){
+//                    errors.add("Dob can not be in future");
+//                }
+//
+//                if(departmentId == null || !departmentRepository.existsById(departmentId)){
+//                    errors.add("Invalid department");
+//                }
+
+
+
+
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to import "+ e.getMessage());
+        }
+
+        return new ApiResponse();
+
+
     }
 }
