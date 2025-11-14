@@ -6,8 +6,11 @@ import com.example.demo.exceptions.DuplicateResourceException;
 import com.example.demo.exceptions.ResourceNotFoundEx;
 import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.StaffRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -56,5 +59,9 @@ public class CourseService {
         Course existingCourse = courseRepository.findByCourseCode(courseCode)
                 .orElseThrow(() -> new ResourceNotFoundEx("Course not found with code: " + courseCode));
         courseRepository.delete(existingCourse);
+    }
+
+    public Page<Course> getAllCourses(Pageable pageable) {
+        return courseRepository.getAllCourses(pageable);
     }
 }

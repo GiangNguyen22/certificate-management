@@ -5,6 +5,7 @@ import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.entity.Course;
 import com.example.demo.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +14,16 @@ import org.springframework.web.bind.annotation.*;
 public class CourseController {
     @Autowired
     private CourseService courseService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse> getAllCourses(Pageable pageable) {
+        ApiResponse response = new ApiResponse();
+        response.setData(courseService.getAllCourses(pageable));
+        response.setMessage("Courses retrieved successfully");
+        response.setStatus("OK");
+        response.setSuccess(true);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/create")
     public ResponseEntity<ApiResponse> createCourse(@RequestBody CourseRequest request) {
@@ -24,6 +35,7 @@ public class CourseController {
         response.setData(saveCourse);
         return ResponseEntity.ok(response);
     }
+
 
     @PutMapping("/{courseCode}/update")
     public ResponseEntity<ApiResponse> updateCourse(@PathVariable String courseCode, @RequestBody CourseRequest request) {
@@ -45,7 +57,6 @@ public class CourseController {
         response.setStatus("OK");
         return ResponseEntity.ok(response);
     }
-
 
 
 

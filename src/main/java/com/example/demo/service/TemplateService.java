@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class TemplateService {
@@ -68,5 +69,9 @@ public class TemplateService {
         }
 
         templateRepo.delete(template);
+    }
+
+    public List<Template> getAllTemplates() {
+        return (List<Template>) templateRepo.findAll();
     }
 }
