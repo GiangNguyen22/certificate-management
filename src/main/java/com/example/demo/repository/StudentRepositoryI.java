@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,7 +13,11 @@ import java.util.Optional;
 
 @Repository
 public interface StudentRepositoryI extends JpaRepository<Student, Long>, JpaSpecificationExecutor<Student> {
+    @Query("SELECT s FROM Student s WHERE s.studentCode = :studentCode")
     Optional<Student> findByStudentCode(String studentCode);
+
     Optional<Student> findByUsername(String username);
+
+    boolean existsByStudentCode(String studentCode);
 
 }

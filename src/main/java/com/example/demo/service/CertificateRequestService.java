@@ -85,7 +85,6 @@ public class CertificateRequestService {
 
         request.setStatus(status);
         request.setUpdatedAt(LocalDateTime.now());
-        // TODO: thêm trường adminNotes nếu entity có
 
         return certificateRequestRepository.save(request);
     }

@@ -5,7 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -36,7 +37,13 @@ public class Student extends User {
     private String xepLoai;
 
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
+     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "student")
     private List<StudentRequest> requests;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "student_course",
+            joinColumns = @JoinColumn(name = "student_code", referencedColumnName = "student_code"),
+            inverseJoinColumns = @JoinColumn(name = "course_code", referencedColumnName = "course_code"))
+    private Set<Course> courses = new HashSet<>();;
 
 }

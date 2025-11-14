@@ -66,13 +66,13 @@ public class Test_Service {
             String templateId = signCertRequest.getTemplateId();
             String staffCode = signCertRequest.getStaffCode();
             String keyStorePassword = signCertRequest.getKeystorePass();
-        
+            String courseCode = signCertRequest.getCourseCode();
             List<InfoEechStudentInResSign> students = signCertRequest.getStudents();
             for (InfoEechStudentInResSign student : students) {
                 ProcessSignUtil.completeSign(
                     templateId, student.getStudentCode(),
                     staffCode, p12FilePath,
-                    keyStorePassword,staffCode, student                    
+                    keyStorePassword,staffCode, student, courseCode
 
                 );
             }

@@ -24,9 +24,6 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     @Autowired
-    private CustomUserDetailsService userDetailsService;
-
-    @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -46,11 +43,13 @@ public class SecurityConfig {
                                 "/configuration/ui",
                                 "/configuration/security",
                                 "/api/test-service/**",
-                                 "/api/v1/requests/*/verifydiploma", // Thêm pattern này
-                                "/api/*/verifydiploma", // Thêm pattern tổng quát
+                                 "/api/v1/requests/*/verifydiploma", 
+                                "/api/*/verifydiploma", 
                                 "/api/*/certificates",
                                 "/api/certificates/*/view",
-                                "/api/test-service/sign")
+                                "/api/test-service/sign",
+                                "/courses/**",
+                                "/api/results/**")
                         .permitAll()
                         .requestMatchers("/api/v1/requests/**",
                                 "/api/v1/requests/*/signrequest",
@@ -66,6 +65,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/search").permitAll()
                         .requestMatchers("/api/users/create").permitAll()
                         .requestMatchers("/api/keys/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/requests/sign-certificate").hasRole("STAFF")
+                        .requestMatchers("/api/templates/**").hasRole("ADMIN")
 //                        .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

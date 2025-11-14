@@ -9,12 +9,10 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.example.demo.service.CertificateRequestService;
 import com.example.demo.service.fillCertificate;
 import com.example.demo.service.interfaces.CertService;
 
-import ch.qos.logback.core.testUtil.RandomUtil;
+
 
 import com.example.demo.config.AppContext;
 import com.example.demo.dto.request.InfoEechStudentInResSign;
@@ -26,15 +24,17 @@ public class ProcessSignUtil {
     public static String completeSign(String templateId,String studentCode,
                                      String staffCode, String keyStorePath, 
                                      String keyStorePassword, String alias, 
-                                     InfoEechStudentInResSign studentInfo) throws Exception {
+                                     InfoEechStudentInResSign studentInfo,
+                                      String courseCode
+                                      ) throws Exception {
        
     // obtain Spring-managed fillCertificate bean so its @Autowired studentRepository is initialized
 
 
     fillCertificate fillCert = AppContext.getBean(fillCertificate.class);
     CertService certService = AppContext.getBean(CertService.class);
-    CertificateRequestService certRequestService = AppContext.getBean(CertificateRequestService.class);
-        KeyUtil keyUtil = new KeyUtil();
+    // CertificateRequestService certRequestService = AppContext.getBean(CertificateRequestService.class);
+        // KeyUtil keyUtil = new KeyUtil();
         char[] pwdArray = keyStorePassword.toCharArray();
         KeyStore keystore = KeyStore.getInstance("PKCS12");
         keystore.load(new FileInputStream(keyStorePath), pwdArray);
@@ -54,7 +54,7 @@ public class ProcessSignUtil {
          String status = "ISSUED";
         String serialNo = certificate.getSerialNumber().toString();
 
-        certService.saveCertificateRecord(certId, templateId, studentId,staffCode, issuedAt, expireAt, status, serialNo, pathDocSigned, hashOfPdf);
+        certService.saveCertificateRecord(certId, templateId, studentId,staffCode, issuedAt, expireAt, status, serialNo, pathDocSigned, hashOfPdf, courseCode);
 
         //certRequestService.updateStatusOfRequest(requestCode, "SIGNED");
         return pathDocSigned;

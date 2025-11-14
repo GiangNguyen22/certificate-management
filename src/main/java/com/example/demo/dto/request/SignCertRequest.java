@@ -22,6 +22,7 @@ public class SignCertRequest {
     @NotNull private String alias;
     @NotNull private String keystorePass;
     @NotNull private MultipartFile p12File;
+    @NotNull private String courseCode;
     @NotEmpty @Size(max = 500) 
     @Valid 
     private List<InfoEechStudentInResSign> students;

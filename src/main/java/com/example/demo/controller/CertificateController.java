@@ -2,17 +2,12 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Certificate;
 import com.example.demo.service.CertificateService;
-
-import io.swagger.v3.oas.annotations.Operation;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -26,9 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.net.URLEncoder; // Cho URLEncoder
-import java.nio.charset.StandardCharsets; // Cho UTF_8
-
+import java.net.URLEncoder; 
 @RestController
 @RequestMapping("/api")
 public class CertificateController {

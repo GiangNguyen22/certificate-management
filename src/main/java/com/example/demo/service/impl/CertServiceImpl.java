@@ -22,34 +22,10 @@ public class CertServiceImpl implements CertService {
     @Autowired
     private com.example.demo.repository.CertificateRepository certRepo;
 
- /*
-     @Override
-    public String createCertificateForStudent(String studentCode,String templateId, InfoEechStudentInResSign studentInfo) throws Exception {
-        Student student = studentService.getStudentByStudentCode(studentCode);
-
-        // validate GPA
-        Double gpa = student.getGpa();
-        if (gpa == null || gpa < 0.0 || gpa > 4.0) {
-            throw new Exception("Invalid GPA for student with studentCode: " + studentCode);
-        }
-
-        // validate graduation status
-        String status = student.getStatusSV();
-        if (status == null || !"GRADUATED".equalsIgnoreCase(status.trim())) {
-            throw new Exception("Student is not graduated, cannot create certificate: " + studentCode);
-        }
-
-        // generate the certificate PDF (path returned) — keep return type void per interface
-        String pdfPath = fillCert.generateCertificate(studentCode, templateId);
-        // TODO: persist certificate record or log the generated path
-        return pdfPath;
-    }
-  */
-
     @Autowired
     private CertificateRepository certrepo;
     @Override
-    public Certificate saveCertificateRecord(String certId, String templateId, String studentId,String userSignedId ,String issuedAt, String expireAt, String status, String serialNo, String pdfUri, String pdfSha256) throws Exception {
+    public Certificate saveCertificateRecord(String certId, String templateId, String studentId,String userSignedId ,String issuedAt, String expireAt, String status, String serialNo, String pdfUri, String pdfSha256, String courseCode) throws Exception {
         Certificate cert = new Certificate();
         cert.setCertId(certId);
         cert.setTemplateId(templateId);
@@ -61,7 +37,7 @@ public class CertServiceImpl implements CertService {
         cert.setSerial_no(serialNo);
         cert.setPdf_uri(pdfUri);
         cert.setPdf_sha256(pdfSha256);
-
+        cert.setCourse_code(courseCode);
         // Here you would typically save the certificate to the database
 
 

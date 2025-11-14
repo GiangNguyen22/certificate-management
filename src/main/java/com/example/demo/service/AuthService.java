@@ -156,6 +156,12 @@ public class AuthService {
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid username or password");
         }
+        
+        // Check if user account is active (status = true)
+        if (!user.isStatus()) {
+            throw new RuntimeException("Account is inactive. Please contact administrator.");
+        }
+        
         return user;
     }
 

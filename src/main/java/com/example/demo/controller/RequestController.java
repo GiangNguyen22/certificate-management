@@ -38,96 +38,64 @@ public class RequestController {
     public ResponseEntity<?> signCertificate(
             @Valid @ModelAttribute SignCertRequest signCertRequest) {
         String p12FilePath = null;
-                try {
+            System.out.println("Deleted temp file: " + signCertRequest.getP12File().getOriginalFilename());
+
+        try {
             MultipartFile p12File = signCertRequest.getP12File();
             p12FilePath = TempFileUtil.saveTempFile(p12File);
             String templateId = signCertRequest.getTemplateId();
             String staffCode = signCertRequest.getStaffCode();
             String keyStorePassword = signCertRequest.getKeystorePass();
-        
+            String courseCode = signCertRequest.getCourseCode();
+
+
             List<InfoEechStudentInResSign> students = signCertRequest.getStudents();
             for (InfoEechStudentInResSign student : students) {
                 ProcessSignUtil.completeSign(
-                    templateId, student.getStudentCode(),
-                    staffCode, p12FilePath,
-                    keyStorePassword,staffCode, student                    
+                        templateId, student.getStudentCode(),
+                        staffCode, p12FilePath,
+                        keyStorePassword, staffCode, student,courseCode
 
                 );
             }
+
             TempFileUtil.deleteTempFile(p12FilePath);
-           
+
             ApiResponse response = new ApiResponse(true, "SUCCESS",
                     "All certificates signed successfully", null);
             return ResponseEntity.ok(response);
-                }
-                catch (Exception e) {
-                    ApiResponse response = new ApiResponse(false, "ERROR", 
-                        e.getMessage(), null);
-                    return ResponseEntity.status(500).body(response);
-                }
-            }
-    // Hoc sinh tao yeu cau lay Van Bang gui cho Giam Doc ky
-    /* 
-        @PostMapping("/{studentcode}/signrequest")
-    public ResponseEntity<?> signRequest(@PathVariable("studentcode") String studentCode,
-            @RequestBody(required = false) Map<String, String> body) {
-        // Kiểm tra body
-        if (body == null || !body.containsKey("templateId") || !body.containsKey("type")) {
-            ApiResponse error = new ApiResponse(false, "BAD_REQUEST", "Missing required fields: templateId and type");
-            return ResponseEntity.badRequest().body(error);
-        } else {
-            try {
-
-                String templateId = body.get("templateId");
-                String requestCode = UUID.randomUUID().toString();
-                String type = body.get("type");
-                String status = "PENDING";
-                certificateRequestService.createRequest(templateId, requestCode, type, status, studentCode);
-                // Tạo data dưới dạng Map (thay vì class riêng)
-                Map<String, Object> data = new HashMap<>();
-                data.put("requestCode", requestCode);
-                data.put("studentCode", studentCode);
-                data.put("type", type);
-                data.put("status", status);
-
-                ApiResponse response = new ApiResponse(true, "SUCCESS", "Certificate request signed successfully",
-                        data);
-                return ResponseEntity.ok(response);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return ResponseEntity.status(500).body("Error signing certificate request: " + e.getMessage());
-            }
+        } catch (Exception e) {
+            ApiResponse response = new ApiResponse(false, "ERROR",
+                    e.getMessage(), null);
+            return ResponseEntity.status(500).body(response);
         }
-
     }
-    */
- 
 
     @Autowired
     UserPubKeysRepository userPKRepo;
 
-   @PostMapping(value = "/{studentcode}/verifydiploma", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-public ResponseEntity<?> verifyDiploma(
-        @PathVariable("studentcode") String studentCode,
-        @RequestParam("diplomaFile") MultipartFile diplomaFile) {
-    
-    String pathtempFile = null;
-    try {
-        pathtempFile = TempFileUtil.saveTempFile(diplomaFile);
-        VerifyResult verifyResult = DigitalSignatureUtil.verifySignature(pathtempFile, userPKRepo);
-        
-        ApiResponse response = new ApiResponse(true, "SUCCESS", 
-            "Xác minh thành công", verifyResult);
-        return ResponseEntity.ok(response);
-        
-    } catch (Exception e) {
-        ApiResponse response = new ApiResponse(false, "ERROR", 
-            "Lỗi xác minh: " + e.getMessage(), null);
-        return ResponseEntity.status(500).body(response);
-    } finally {
-        if (pathtempFile != null) {
-            TempFileUtil.deleteTempFile(pathtempFile);
+    @PostMapping(value = "/{studentcode}/verifydiploma", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> verifyDiploma(
+            @PathVariable("studentcode") String studentCode,
+            @RequestParam("diplomaFile") MultipartFile diplomaFile) {
+
+        String pathtempFile = null;
+        try {
+            pathtempFile = TempFileUtil.saveTempFile(diplomaFile);
+            VerifyResult verifyResult = DigitalSignatureUtil.verifySignature(pathtempFile, userPKRepo);
+
+            ApiResponse response = new ApiResponse(true, "SUCCESS",
+                    "Xác minh thành công", verifyResult);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            ApiResponse response = new ApiResponse(false, "ERROR",
+                    "Lỗi xác minh: " + e.getMessage(), null);
+            return ResponseEntity.status(500).body(response);
+        } finally {
+            if (pathtempFile != null) {
+                TempFileUtil.deleteTempFile(pathtempFile);
+            }
         }
     }
-}
 }
