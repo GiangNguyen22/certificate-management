@@ -122,13 +122,13 @@ public class PdfSignerUtil {
     // return outputPath;
     // }
 
-    static String signInternalSignatureInPdf(String srcPdfPath, String studentCode,
+    static String signInternalSignatureInPdf(String srcPdfPath, String courseCode, String studentCode,
             PrivateKey privateKey, Certificate[] chain) throws Exception {
         PdfReader reader = new PdfReader(srcPdfPath);
         File outDir = new File("certificates_signed");
         if (!outDir.exists())
             outDir.mkdirs();
-        String outputPath = outDir.getAbsolutePath() + "/" + studentCode + "_certificate.pdf";
+        String outputPath = outDir.getAbsolutePath() + "/" + studentCode +"_"+ courseCode + "_certificate.pdf";
         FileOutputStream os = new FileOutputStream(outputPath);
         PdfSigner signer = new PdfSigner(reader, os, new StampingProperties().useAppendMode());
         PdfSignatureAppearance appearance = signer.getSignatureAppearance()
@@ -146,9 +146,7 @@ public class PdfSignerUtil {
                 0,
                 PdfSigner.CryptoStandard.CMS);
         os.close();
-        System.out.println("Thanhcongvienman");
-
-        return outputPath;
+            return outputPath;
     }
 
     /**
