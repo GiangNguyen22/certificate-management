@@ -8,7 +8,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import com.example.demo.service.fillCertificate;
 import com.example.demo.service.interfaces.CertService;
 
@@ -44,7 +43,7 @@ public class ProcessSignUtil {
         X509Certificate certificate = (X509Certificate) keystore.getCertificate(alias);
         String signature = PdfSignerUtil.signDocumentBase64(hashOfPdf, privateKey);
         System.out.println("✅ Document signed successfully. Signature (Base64): " + signature);
-        String pathDocSigned = PdfSignerUtil.signInternalSignatureInPdf(rawPdfPath, studentCode, privateKey, keystore.getCertificateChain(alias));
+        String pathDocSigned = PdfSignerUtil.signInternalSignatureInPdf(rawPdfPath,courseCode, studentCode, privateKey, keystore.getCertificateChain(alias));
         // String pathDocSigned = PdfSignerUtil.embedSignatureInPdf(rawPdfPath, studentCode, signature, keystore.getCertificateChain(alias));
        String certId = UUID.randomUUID().toString() + "-" + studentCode;
        //String templateId = "template-001"; // Example template ID
