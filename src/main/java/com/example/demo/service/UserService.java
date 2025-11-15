@@ -342,9 +342,17 @@ public class UserService {
             student.setGpa(0.0); // Default GPA
             student.setPassedEnglish(false); // Default
 
-            Role role = roleRepository.findByName(request.getRole())
-                    .orElseThrow(() -> new ResourceNotFoundEx("Role not found"));
-            student.setRoles(Set.of(role));
+            Set<Role> roles = new HashSet<>();
+            Role studentRole = roleRepository.findByName(request.getRole())
+                    .orElseGet(() -> {
+                        Role newRole = new Role();
+                        newRole.setName(request.getRole());
+                        newRole.setDescription("Student Role");
+                        return roleRepository.save(newRole);
+                    });
+            roles.add(studentRole);
+            student.setRoles(roles);
+
             user = student;
         } else if ("STAFF".equals(request.getRole())) {
             Staff staff = new Staff();
@@ -361,9 +369,16 @@ public class UserService {
             staff.setStatus(true);
             staff.setDepartmentId(1); // Default department
 
-            Role role = roleRepository.findByName(request.getRole())
-                    .orElseThrow(() -> new ResourceNotFoundEx("Role not found"));
-            staff.setRoles(Set.of(role));
+            Set<Role> roles = new HashSet<>();
+            Role staffRole = roleRepository.findByName(request.getRole())
+                    .orElseGet(() -> {
+                        Role newRole = new Role();
+                        newRole.setName(request.getRole());
+                        newRole.setDescription("Staff Role");
+                        return roleRepository.save(newRole);
+                    });
+            roles.add(staffRole);
+            staff.setRoles(roles);
             user = staff;
         } else {
             User newUser = new User();
@@ -378,9 +393,16 @@ public class UserService {
             newUser.setFullName(request.getName() != null ? request.getName() : request.getUsername());
             newUser.setEmail(request.getEmail() != null ? request.getEmail() : "");
 
-            Role role = roleRepository.findByName(request.getRole())
-                    .orElseThrow(() -> new ResourceNotFoundEx("Role not found"));
-            newUser.setRoles(Set.of(role));
+            Set<Role> roles = new HashSet<>();
+            Role userRole = roleRepository.findByName(request.getRole())
+                    .orElseGet(() -> {
+                        Role newRole = new Role();
+                        newRole.setName(request.getRole());
+                        newRole.setDescription("ADMIN Role");
+                        return roleRepository.save(newRole);
+                    });
+            roles.add(userRole);
+            newUser.setRoles(roles);
             user = newUser;
         }
         return userRepository.save(user);

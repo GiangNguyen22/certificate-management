@@ -44,6 +44,5 @@ public class Student extends User {
     @JoinTable(name = "student_course",
             joinColumns = @JoinColumn(name = "student_code", referencedColumnName = "student_code"),
             inverseJoinColumns = @JoinColumn(name = "course_code", referencedColumnName = "course_code"))
-    private Set<Course> courses = new HashSet<>();;
-
+    private Set<Course> courses = new HashSet<>();
 }
