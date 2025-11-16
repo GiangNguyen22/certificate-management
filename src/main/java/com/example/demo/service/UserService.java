@@ -332,15 +332,15 @@ public class UserService {
             // Set basic user fields - RegisterRequest has 'name' not 'fullName'
             student.setFullName(request.getName() != null ? request.getName() : request.getUsername());
             student.setEmail(request.getEmail() != null ? request.getEmail() : "");
-
+            
             // Set student-specific fields
             student.setStudentCode(request.getStudentCode());
             student.setMajorName(request.getMajorName());
             student.setStartYear(request.getYear());
             student.setXepLoai(request.getXepLoai());
-            student.setStatusSV("ACTIVE"); // Default status
-            student.setGpa(0.0); // Default GPA
-            student.setPassedEnglish(false); // Default
+            student.setStatusSV("ACTIVE"); 
+            student.setGpa(0.0); 
+            student.setPassedEnglish(false); 
 
             Set<Role> roles = new HashSet<>();
             Role studentRole = roleRepository.findByName(request.getRole())

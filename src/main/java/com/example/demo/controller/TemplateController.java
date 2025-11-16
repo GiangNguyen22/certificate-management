@@ -30,7 +30,7 @@ public class TemplateController {
 
     @PostMapping("/add-template")
     public ResponseEntity<ApiResponse> addTemplate(
-            @RequestPart("template") Template template,
+            @ModelAttribute("template") Template template,
             @RequestPart(value = "file", required = false) MultipartFile file) {
 
         ApiResponse response = new ApiResponse();

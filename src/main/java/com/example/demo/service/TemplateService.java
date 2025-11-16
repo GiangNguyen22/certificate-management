@@ -26,31 +26,23 @@ public class TemplateService {
     public Template addTemplate(Template template, MultipartFile file) {
         if (file != null && !file.isEmpty()) {
             try {
-
                 String fileName = LocalDate.now() + "_" + file.getOriginalFilename();
-
                 Path uploadPath = Paths.get("src/main/resources/templates");
 
-                // Tạo thư mục nếu chưa tồn tại
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
                 }
 
-                // Lưu file
                 Path filePath = uploadPath.resolve(fileName);
                 Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
                 template.setFilePath("templates/" + fileName);
-
 
             } catch (IOException e) {
                 throw new RuntimeException("Failed to store file: " + e.getMessage());
             }
         }
         return templateRepository.save(template);
-
     }
-
     public void deleteTemplate(String templateId) {
         Template template = templateRepository.findById(templateId)
                 .orElseThrow(() -> new ResourceNotFoundEx("Template not found with id: " + templateId));
