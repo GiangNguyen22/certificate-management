@@ -39,23 +39,6 @@ public class ResultController {
         response.setData(results);
         return ResponseEntity.ok(response);
     }
-    //  @GetMapping("/student/{studentCode}")
-    // public ResponseEntity<ApiResponse> getResultsByStudentCode(@PathVariable String studentCode) {
-    //     ApiResponse response = new ApiResponse();
-    //     try {
-    //         List<ResultDTO> results = resultService.getResultsByStudentCode(studentCode);
-    //         response.setSuccess(true);
-    //         response.setStatus("OK");
-    //         response.setMessage("Get results by student code successfully");
-    //         response.setData(results);
-    //         return ResponseEntity.ok(response);
-    //     } catch (Exception e) {
-    //         response.setSuccess(false);
-    //         response.setStatus("ERROR");
-    //         response.setMessage("Error getting results: " + e.getMessage());
-    //         return ResponseEntity.status(500).body(response);
-    //     }
-    // }
 
      @GetMapping("/student/{studentCode}/courses")
     public ResponseEntity<ApiResponse> getStudentCourses(@PathVariable String studentCode) {

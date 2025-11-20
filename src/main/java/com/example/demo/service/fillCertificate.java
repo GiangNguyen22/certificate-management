@@ -169,7 +169,7 @@ public String generateCertificate(String studentCode, String templateId, InfoEec
     }
     
     Template template = templateService.getTemplateById(templateId);
-    String nameTemplate = template.getName();
+    String filePath = "/" + template.getFilePath();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     String issuedDate = LocalDate.now().format(formatter);
 
@@ -179,10 +179,10 @@ public String generateCertificate(String studentCode, String templateId, InfoEec
     String outputPath = outDir.getAbsolutePath() + "/" + studentInfo.getStudentCode() + "_certificate.pdf";
 
     // Đọc PDF template từ resources thành byte[]
-    try (InputStream is = getClass().getResourceAsStream("/templates/" + nameTemplate)) {
-        if (is == null) {
-            throw new FileNotFoundException("Template PDF not found at /templates/" + nameTemplate);
-        }
+    try (InputStream is = getClass().getResourceAsStream(filePath)) {
+    if (is == null) {
+        throw new FileNotFoundException("Template PDF not found at " + filePath);
+    }
         byte[] pdfBytes = is.readAllBytes();
         
         try (PDDocument document = Loader.loadPDF(pdfBytes)) {

@@ -13,6 +13,7 @@ import org.apache.coyote.Response;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +22,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.example.demo.service.interfaces.p12Service;
+
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.springframework.core.io.Resource;
 
 @RestController
 @RequestMapping("/api/users")
@@ -150,7 +159,8 @@ public class UserController {
 
     @PutMapping("/student/{studentCode}")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ResponseEntity<ApiResponse> updateStudent(@PathVariable String studentCode, @RequestBody Map<String, Object> updateData) {
+    public ResponseEntity<ApiResponse> updateStudent(@PathVariable String studentCode,
+            @RequestBody Map<String, Object> updateData) {
         try {
             userService.updateStudentByStudentCode(studentCode, updateData);
             ApiResponse response = new ApiResponse(true, "Update student successfully", "SUCCESS", null);
@@ -198,7 +208,6 @@ public class UserController {
     }
 
     @PatchMapping("/student/change-password")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse> updatePassword(@RequestBody ChangePasswordRequest request,
             Authentication authentication) throws BadRequestException {
         String username = authentication.getName();
@@ -212,32 +221,37 @@ public class UserController {
 
     @PatchMapping("/staff/{username}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> updateStaffStatus(@PathVariable String username, @RequestBody Map<String, Object> statusData) {
+    public ResponseEntity<ApiResponse> updateStaffStatus(@PathVariable String username,
+            @RequestBody Map<String, Object> statusData) {
         try {
             userService.updateStaffStatus(username, (Boolean) statusData.get("status"));
             ApiResponse response = new ApiResponse(true, "Update staff status successfully", "SUCCESS", null);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            ApiResponse response = new ApiResponse(false, "Update staff status failed: " + e.getMessage(), "ERROR", null);
+            ApiResponse response = new ApiResponse(false, "Update staff status failed: " + e.getMessage(), "ERROR",
+                    null);
             return ResponseEntity.badRequest().body(response);
         }
     }
 
     @PatchMapping("/student/{studentCode}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> updateStudentStatus(@PathVariable String studentCode, @RequestBody Map<String, Object> statusData) {
+    public ResponseEntity<ApiResponse> updateStudentStatus(@PathVariable String studentCode,
+            @RequestBody Map<String, Object> statusData) {
         try {
             userService.updateStudentStatus(studentCode, (Boolean) statusData.get("status"));
             ApiResponse response = new ApiResponse(true, "Update student status successfully", "SUCCESS", null);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            ApiResponse response = new ApiResponse(false, "Update student status failed: " + e.getMessage(), "ERROR", null);
+            ApiResponse response = new ApiResponse(false, "Update student status failed: " + e.getMessage(), "ERROR",
+                    null);
             return ResponseEntity.badRequest().body(response);
         }
     }
 
-     @PostMapping("/{studentCode}/courses/{courseCode}/enroll")
-    public ResponseEntity<ApiResponse> enrollStudentInCourse(@PathVariable String studentCode, @PathVariable String courseCode) {
+    @PostMapping("/{studentCode}/courses/{courseCode}/enroll")
+    public ResponseEntity<ApiResponse> enrollStudentInCourse(@PathVariable String studentCode,
+            @PathVariable String courseCode) {
 
         ApiResponse response = new ApiResponse();
         response.setSuccess(true);
@@ -257,4 +271,81 @@ public class UserController {
         response.setMessage("Get courses by student code successfully");
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/import/students")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse> importStudents(@RequestParam("file") MultipartFile file) {
+        try {
+            ApiResponse response = userService.importStudents(file);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse errorResponse = new ApiResponse(false, "Import failed: " + e.getMessage(), "ERROR", null);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @GetMapping("/export/students")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> exportStudents() {
+        try {
+            System.out.println("=== EXPORT STUDENTS CONTROLLER CALLED ===");
+            String filePath = userService.exportStudentsToExcel();
+            System.out.println("Export completed, file path: " + filePath);
+
+            java.nio.file.Path path = java.nio.file.Paths.get(filePath);
+            byte[] fileContent = java.nio.file.Files.readAllBytes(path);
+            System.out.println("File read successfully, size: " + fileContent.length + " bytes");
+
+            // Delete the file after reading (optional cleanup)
+            boolean deleted = java.nio.file.Files.deleteIfExists(path);
+            System.out.println("File cleanup: " + (deleted ? "successful" : "failed"));
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=students_export.xlsx")
+                    .header(HttpHeaders.CONTENT_TYPE,
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    .body(fileContent);
+        } catch (Exception e) {
+            System.err.println("=== EXPORT STUDENTS ERROR ===");
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/download-import-errors")
+    public ResponseEntity<byte[]> downloadImportErrors(@RequestParam String filePath) {
+        try {
+            System.out.println("=== DOWNLOAD IMPORT ERRORS ===");
+            System.out.println("File path: " + filePath);
+
+            // Decode URL
+            String decodedPath = java.net.URLDecoder.decode(filePath, "UTF-8");
+            System.out.println("Decoded path: " + decodedPath);
+
+            java.nio.file.Path path = java.nio.file.Paths.get(decodedPath);
+            System.out.println("Absolute path: " + path.toAbsolutePath());
+
+            if (!java.nio.file.Files.exists(path)) {
+                System.err.println("❌ File not found: " + path.toAbsolutePath());
+                return ResponseEntity.notFound().build();
+            }
+
+            byte[] fileContent = java.nio.file.Files.readAllBytes(path);
+            String filename = path.getFileName().toString();
+
+            System.out.println("✅ File found: " + filename);
+            System.out.println("File size: " + fileContent.length + " bytes");
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(fileContent);
+
+        } catch (Exception e) {
+            System.err.println("❌ Download error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
 }

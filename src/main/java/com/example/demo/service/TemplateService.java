@@ -23,26 +23,35 @@ public class TemplateService {
         this.templateRepository = templateRepository;
     }
 
-    public Template addTemplate(Template template, MultipartFile file) {
-        if (file != null && !file.isEmpty()) {
-            try {
-                String fileName = LocalDate.now() + "_" + file.getOriginalFilename();
-                Path uploadPath = Paths.get("src/main/resources/templates");
-
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                Path filePath = uploadPath.resolve(fileName);
-                Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-                template.setFilePath("templates/" + fileName);
-
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to store file: " + e.getMessage());
-            }
-        }
-        return templateRepository.save(template);
+public Template addTemplate(Template template, MultipartFile file) {
+    if (template.getId() == null || template.getId().trim().isEmpty()) {
+        throw new IllegalArgumentException("Template ID must not be null or empty");
     }
+    
+    if (templateRepository.existsById(template.getId())) {
+        throw new IllegalArgumentException("Template with ID " + template.getId() + " already exists");
+    }
+    
+    if (file != null && !file.isEmpty()) {
+        try {
+            String fileName = LocalDate.now() + "_" + file.getOriginalFilename();
+            Path uploadPath = Paths.get("src/main/resources/templates");
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            template.setFilePath("templates/" + fileName);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store file: " + e.getMessage());
+        }
+    }
+    return templateRepository.save(template);
+}
+
     public void deleteTemplate(String templateId) {
         Template template = templateRepository.findById(templateId)
                 .orElseThrow(() -> new ResourceNotFoundEx("Template not found with id: " + templateId));

@@ -65,9 +65,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/search").permitAll()
                         .requestMatchers("/api/users/create").permitAll()
                         .requestMatchers("/api/keys/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/import/students").hasRole("ADMIN")
                         .requestMatchers("/api/v1/requests/sign-certificate").hasRole("STAFF")
                         .requestMatchers("/api/templates/**").hasRole("ADMIN")
-//                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                       .requestMatchers("/api/users/download-import-errors").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -78,7 +79,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
 
