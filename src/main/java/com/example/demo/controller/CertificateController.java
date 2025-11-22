@@ -45,10 +45,11 @@ public class CertificateController {
     @GetMapping("/certificates")
     public ResponseEntity<Map<String, Object>> getAllCertificates(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String studentId) {
         try {
             Pageable pageable = PageRequest.of(page, size);
-            Page<Certificate> certificatePage = certificateService.getAllCertificatesPaged(pageable);
+            Page<Certificate> certificatePage = certificateService.getCertificatesPaged(pageable, studentId);
 
             Map<String, Object> response = new HashMap<>();
             response.put("content", certificatePage.getContent());

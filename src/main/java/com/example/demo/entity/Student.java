@@ -15,7 +15,7 @@ import java.util.List;
 @Data
 @Builder
 @Entity
-@PrimaryKeyJoinColumn(name = "user_id") // chỉ cần khi dùng JOINED
+@PrimaryKeyJoinColumn(name = "user_id") 
 
 public class Student extends User {
 

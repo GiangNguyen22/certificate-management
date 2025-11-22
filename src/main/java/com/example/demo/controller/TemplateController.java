@@ -29,18 +29,37 @@ public class TemplateController {
     }
 
     @PostMapping("/add-template")
-    public ResponseEntity<ApiResponse> addTemplate(
-            @RequestPart("template") Template template,
-            @RequestPart(value = "file", required = false) MultipartFile file) {
+public ResponseEntity<ApiResponse> addTemplate(
+        @RequestParam("id") String id,
+        @RequestParam("name") String name,
+        @RequestParam(value = "description", required = false) String description,
+        @RequestParam("type") String type,
+        @RequestParam(value = "filePath", required = false) String filePath,
+        @RequestPart(value = "file", required = false) MultipartFile file) {
 
-        ApiResponse response = new ApiResponse();
+    ApiResponse response = new ApiResponse();
+    
+    try {
+        Template template = new Template();
+        template.setId(id);
+        template.setName(name);
+        template.setDescription(description);
+        template.setType(type);
+        template.setFilePath(filePath);
+
         Template savedTemplate = templateService.addTemplate(template, file);
         response.setSuccess(true);
         response.setStatus("OK");
         response.setMessage("Template added successfully");
         response.setData(savedTemplate);
         return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        response.setSuccess(false);
+        response.setStatus("ERROR");
+        response.setMessage("Failed to add template: " + e.getMessage());
+        return ResponseEntity.badRequest().body(response);
     }
+}
 
 
     @DeleteMapping("/{templateId}/delete")

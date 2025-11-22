@@ -365,10 +365,21 @@ public class CertificateService {
     private fillCertificate fillCertificate;
 
     /**
-     * Get all certificates with pagination
+     * Get all certificates with pagination, optionally filtered by studentId
      */
     public Page<Certificate> getAllCertificatesPaged(Pageable pageable) {
         return certRepo.findAll(pageable);
+    }
+
+    /**
+     * Get certificates with pagination, optionally filtered by studentId
+     */
+    public Page<Certificate> getCertificatesPaged(Pageable pageable, String studentId) {
+        if (studentId != null && !studentId.trim().isEmpty()) {
+            return certRepo.findByStudentId(studentId.trim(), pageable);
+        } else {
+            return certRepo.findAll(pageable);
+        }
     }
 
 
