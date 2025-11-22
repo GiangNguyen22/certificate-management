@@ -83,7 +83,7 @@ public class UserService {
 
         // Set default values
         staff.setStatus(true);
-        staff.setDepartmentId(1); // Default department
+        staff.setDepartmentId(1);// Default department
 
         return staffRepository.save(staff);
     }
@@ -354,6 +354,7 @@ public class UserService {
             student.setRoles(roles);
 
             user = student;
+            studentRepository.save(student);
         } else if ("STAFF".equals(request.getRole())) {
             Staff staff = new Staff();
             staff.setUsername(request.getUsername());
@@ -367,7 +368,10 @@ public class UserService {
             staff.setFullName(request.getName() != null ? request.getName() : request.getUsername());
             staff.setEmail(request.getEmail() != null ? request.getEmail() : "");
             staff.setStatus(true);
-            staff.setDepartmentId(1); // Default department
+            staff.setDepartmentId(1);// Default department
+            staff.setName(request.getName() != null ? request.getName() : request.getUsername());
+            staff.setStaffCode(request.getStaffCode());
+
 
             Set<Role> roles = new HashSet<>();
             Role staffRole = roleRepository.findByName(request.getRole())
@@ -380,6 +384,7 @@ public class UserService {
             roles.add(staffRole);
             staff.setRoles(roles);
             user = staff;
+            staffRepository.save(staff);
         } else {
             User newUser = new User();
             newUser.setUsername(request.getUsername());
