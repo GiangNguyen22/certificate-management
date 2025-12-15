@@ -82,6 +82,16 @@ public class UserController {
         return ResponseEntity.ok(students);
     }
 
+    @GetMapping("/students/paged")
+    public ResponseEntity<ApiResponse> getStudents(Pageable pageable) {
+        ApiResponse response = new ApiResponse();
+        response.setData(studentService.getAllStudents(pageable));
+        response.setMessage("Courses retrieved successfully");
+        response.setStatus("OK");
+        response.setSuccess(true);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/students/{id}")
     public ResponseEntity<?> getStudentById(@PathVariable Long id) {
         try {
@@ -198,7 +208,7 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+//    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<Page<Student>> searchStudents(@RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String grade,

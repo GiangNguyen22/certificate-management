@@ -49,7 +49,9 @@ public class SecurityConfig {
                                 "/api/certificates/*/view",
                                 "/api/test-service/sign",
                                 "/courses/**",
-                                "/api/results/**")
+                                "/api/results/**",
+                                 "/api/users/students/paged",
+                        "/api/users/search")
                         .permitAll()
                         .requestMatchers("/api/v1/requests/**",
                                 "/api/v1/requests/*/signrequest",
