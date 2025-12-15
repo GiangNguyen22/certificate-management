@@ -86,7 +86,7 @@ public class UserController {
     public ResponseEntity<ApiResponse> getStudents(Pageable pageable) {
         ApiResponse response = new ApiResponse();
         response.setData(studentService.getAllStudents(pageable));
-        response.setMessage("Courses retrieved successfully");
+        response.setMessage("Students retrieved successfully");
         response.setStatus("OK");
         response.setSuccess(true);
         return ResponseEntity.ok(response);
