@@ -46,8 +46,8 @@ public class StudentService{
 
     public Page<Student> searchStudents(String studentCode, String name, String grade, Pageable pageable){
         Specification<Student> spec = StudentSpecification.hasStudentCode(studentCode)
-                .and(StudentSpecification.hasNameLike(name))
-                .and(StudentSpecification.hasGrade(grade));
+                .or(StudentSpecification.hasNameLike(name))
+                .or(StudentSpecification.hasGrade(grade));
         return studentRepository.findAll(spec, pageable);
     }
 

@@ -50,6 +50,7 @@ public class SecurityConfig {
                                 "/api/test-service/sign",
                                 "/courses/**",
                                 "/api/results/**",
+                                 "/api/users/student/**",
                                  "/api/users/students/paged",
                         "/api/users/search")
                         .permitAll()

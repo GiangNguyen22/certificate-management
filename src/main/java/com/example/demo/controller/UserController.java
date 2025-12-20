@@ -168,7 +168,7 @@ public class UserController {
     }
 
     @PutMapping("/student/{studentCode}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+//    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse> updateStudent(@PathVariable String studentCode,
             @RequestBody Map<String, Object> updateData) {
         try {
@@ -182,7 +182,7 @@ public class UserController {
     }
 
     @DeleteMapping("/student/{studentCode}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> deleteStudent(@PathVariable String studentCode) {
         try {
             userService.deleteStudentByStudentCode(studentCode);
@@ -209,12 +209,13 @@ public class UserController {
 
     @GetMapping("/search")
 //    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ResponseEntity<Page<Student>> searchStudents(@RequestParam(required = false) String studentCode,
+    public ResponseEntity<ApiResponse> searchStudents(@RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String grade,
             Pageable pageable) {
         Page<Student> students = studentService.searchStudents(studentCode, name, grade, pageable);
-        return ResponseEntity.ok(students);
+        ApiResponse response = new ApiResponse(true, "Search students successfully", "SUCCESS", students);
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/student/change-password")
