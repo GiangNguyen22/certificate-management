@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.RegisterRequest;
+import com.example.demo.dto.StaffProjection;
 import com.example.demo.entity.Course;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.Staff;
@@ -90,6 +91,10 @@ public class UserService {
 
     public List<Staff> getAllStaff() {
         return staffRepository.findAll();
+    }
+
+    public List<StaffProjection> getStaffList(){
+        return staffRepository.getStaffList();
     }
 
     public List<Student> getAllStudents() {

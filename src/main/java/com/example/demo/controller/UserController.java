@@ -8,6 +8,7 @@ import com.example.demo.entity.Student;
 import com.example.demo.entity.User;
 import com.example.demo.service.StudentService;
 import com.example.demo.service.UserService;
+import com.google.protobuf.Api;
 import org.apache.coyote.BadRequestException;
 import org.apache.coyote.Response;
 import org.apache.coyote.BadRequestException;
@@ -16,6 +17,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -125,6 +127,16 @@ public class UserController {
             error.put("error", "Failed to load user profile: " + e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
+    }
+
+    @GetMapping("/staffs")
+    public ResponseEntity<ApiResponse> getStaffList(){
+        ApiResponse response = new ApiResponse();
+        response.setData(userService.getStaffList());
+        response.setMessage("Staffs retrieved successfully");
+        response.setStatus("OK");
+        response.setSuccess(true);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PutMapping("/profile")
