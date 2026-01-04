@@ -78,7 +78,6 @@ public class UserController {
     }
 
     @GetMapping("/students")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<List<Student>> getAllStudents() {
         List<Student> students = userService.getAllStudents();
         return ResponseEntity.ok(students);
@@ -207,7 +206,6 @@ public class UserController {
     }
 
     @DeleteMapping("/staff/{username}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> deleteStaff(@PathVariable String username) {
         try {
             userService.deleteStaffByUsername(username);
@@ -243,7 +241,6 @@ public class UserController {
     }
 
     @PatchMapping("/staff/{username}/status")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> updateStaffStatus(@PathVariable String username,
             @RequestBody Map<String, Object> statusData) {
         try {
@@ -258,7 +255,6 @@ public class UserController {
     }
 
     @PatchMapping("/student/{studentCode}/status")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> updateStudentStatus(@PathVariable String studentCode,
             @RequestBody Map<String, Object> statusData) {
         try {

@@ -12,6 +12,7 @@ public class RegisterRequest {
     private String role;
     private String name;
     private LocalDate dob;
+    private String gender;
     private String studentCode;
     private String majorName;
     private String year;

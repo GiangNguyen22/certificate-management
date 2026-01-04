@@ -120,6 +120,7 @@ public class UserService {
             profile.put("username", student.getUsername());
             profile.put("name", student.getFullName() != null ? student.getFullName() : "");
             profile.put("email", student.getEmail() != null ? student.getEmail() : "");
+            profile.put("gender", student.getGender() != null ? student.getGender() : "");
             profile.put("phone", null); // Students may not have phone
             profile.put("role", "STUDENT");
             profile.put("studentCode", student.getStudentCode() != null ? student.getStudentCode() : "");
@@ -139,6 +140,7 @@ public class UserService {
             profile.put("username", staff.getUsername());
             profile.put("name", staff.getFullName() != null ? staff.getFullName() : "");
             profile.put("email", staff.getEmail() != null ? staff.getEmail() : "");
+            profile.put("gender", staff.getGender() != null ? staff.getGender() : "");
             profile.put("phone", staff.getPhone() != null ? staff.getPhone() : "");
             profile.put("role", "STAFF");
             profile.put("staffCode", staff.getStaffCode() != null ? staff.getStaffCode() : "");
@@ -156,6 +158,7 @@ public class UserService {
             profile.put("username", user.getUsername());
             profile.put("name", user.getFullName() != null ? user.getFullName() : "");
             profile.put("email", user.getEmail() != null ? user.getEmail() : "");
+            profile.put("gender", user.getGender() != null ? user.getGender() : "");
             profile.put("phone", user.getPhone() != null ? user.getPhone() : "");
             profile.put("role", "ADMIN");
             profile.put("createdAt", null);
@@ -176,6 +179,8 @@ public class UserService {
                 student.setFullName((String) profileData.get("name"));
             if (profileData.containsKey("email"))
                 student.setEmail((String) profileData.get("email"));
+            if (profileData.containsKey("gender"))
+                student.setGender((String) profileData.get("gender"));
             if (profileData.containsKey("major"))
                 student.setMajorName((String) profileData.get("major"));
             if (profileData.containsKey("startYear"))
@@ -193,6 +198,8 @@ public class UserService {
                 staff.setFullName((String) profileData.get("name"));
             if (profileData.containsKey("email"))
                 staff.setEmail((String) profileData.get("email"));
+            if (profileData.containsKey("gender"))
+                staff.setGender((String) profileData.get("gender"));
             if (profileData.containsKey("phone"))
                 staff.setPhone((String) profileData.get("phone"));
             staffRepository.save(staff);
@@ -206,6 +213,8 @@ public class UserService {
                 user.setFullName((String) profileData.get("name"));
             if (profileData.containsKey("email"))
                 user.setEmail((String) profileData.get("email"));
+            if (profileData.containsKey("gender"))
+                user.setGender((String) profileData.get("gender"));
             if (profileData.containsKey("phone"))
                 user.setPhone((String) profileData.get("phone"));
             userRepository.save(user);
@@ -294,6 +303,21 @@ public class UserService {
                 student.setStatus(Boolean.parseBoolean((String) statusValue));
             }
         }
+        if (updateData.containsKey("gender")) {
+            student.setGender((String) updateData.get("gender"));
+        }
+        if (updateData.containsKey("dob")) {
+            Object dobValue = updateData.get("dob");
+            if (dobValue instanceof LocalDate) {
+                student.setDob((LocalDate) dobValue);
+            } else if (dobValue instanceof String) {
+                try {
+                    student.setDob(LocalDate.parse((String) dobValue));
+                } catch (Exception e) {
+                    // Ignore invalid date format
+                }
+            }
+        }
 
         studentRepository.save(student);
     }
@@ -337,6 +361,7 @@ public class UserService {
             // Set basic user fields - RegisterRequest has 'name' not 'fullName'
             student.setFullName(request.getName() != null ? request.getName() : request.getUsername());
             student.setEmail(request.getEmail() != null ? request.getEmail() : "");
+            student.setGender(request.getGender() != null ? request.getGender() : "");
 
             // Set student-specific fields
             student.setStudentCode(request.getStudentCode());
@@ -372,6 +397,7 @@ public class UserService {
 
             staff.setFullName(request.getName() != null ? request.getName() : request.getUsername());
             staff.setEmail(request.getEmail() != null ? request.getEmail() : "");
+            staff.setGender(request.getGender() != null ? request.getGender() : "");
             staff.setStatus(true);
             staff.setDepartmentId(1);// Default department
             staff.setName(request.getName() != null ? request.getName() : request.getUsername());

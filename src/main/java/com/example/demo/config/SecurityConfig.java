@@ -52,7 +52,7 @@ public class SecurityConfig {
                                 "/api/results/**",
                                  "/api/users/student/**",
                                  "/api/users/students/paged",
-                                    "/api/users/staffs",
+                                    "/api/users/staff",
                         "/api/users/search")
                         .permitAll()
                         .requestMatchers("/api/v1/requests/**",

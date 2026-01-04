@@ -25,6 +25,7 @@ public class User {
     private String email;
     private String phone;
     private LocalDate dob;
+    private String gender;
     private boolean status;
     @Column(name="department_id")
     private int departmentId;
