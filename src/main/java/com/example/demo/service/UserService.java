@@ -349,6 +349,9 @@ public class UserService {
 
         User user;
         if ("STUDENT".equals(request.getRole())) {
+            if(studentRepository.existsByStudentCode(request.getStudentCode())) {
+                throw new RuntimeException("StudentCode already exists");
+            }
             Student student = new Student();
             student.setUsername(request.getUsername());
 
@@ -362,6 +365,7 @@ public class UserService {
             student.setFullName(request.getName() != null ? request.getName() : request.getUsername());
             student.setEmail(request.getEmail() != null ? request.getEmail() : "");
             student.setGender(request.getGender() != null ? request.getGender() : "");
+            student.setDob(request.getDob() != null ? request.getDob() : null);
 
             // Set student-specific fields
             student.setStudentCode(request.getStudentCode());
@@ -396,6 +400,7 @@ public class UserService {
             staff.setPassword(passwordEncoder.encode(passwordToEncode));
 
             staff.setFullName(request.getName() != null ? request.getName() : request.getUsername());
+            staff.setDob(request.getDob() != null ? request.getDob() : null);
             staff.setEmail(request.getEmail() != null ? request.getEmail() : "");
             staff.setGender(request.getGender() != null ? request.getGender() : "");
             staff.setStatus(true);
@@ -428,6 +433,7 @@ public class UserService {
 
             newUser.setFullName(request.getName() != null ? request.getName() : request.getUsername());
             newUser.setEmail(request.getEmail() != null ? request.getEmail() : "");
+            newUser.setDob(request.getDob() != null ? request.getDob() : null);
 
             Set<Role> roles = new HashSet<>();
             Role userRole = roleRepository.findByName(request.getRole())
