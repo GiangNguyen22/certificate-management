@@ -2,10 +2,13 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.CourseRequest;
 import com.example.demo.entity.Course;
+import com.example.demo.entity.Student;
 import com.example.demo.exceptions.DuplicateResourceException;
 import com.example.demo.exceptions.ResourceNotFoundEx;
 import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.StaffRepository;
+import com.example.demo.specifications.StudentSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -76,5 +79,9 @@ public class CourseService {
 
     public Page<Course> getAllCourses(Pageable pageable) {
         return courseRepository.getAllCourses(pageable);
+    }
+
+    public Page<Course> searchCourse(String studentCode, String name, Pageable pageable) {
+        return courseRepository.searchByCourseCodeOrName(studentCode, name, pageable);
     }
 }

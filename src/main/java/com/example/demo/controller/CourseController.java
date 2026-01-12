@@ -3,8 +3,10 @@
     import com.example.demo.dto.request.CourseRequest;
     import com.example.demo.dto.response.ApiResponse;
     import com.example.demo.entity.Course;
+    import com.example.demo.entity.Student;
     import com.example.demo.service.CourseService;
     import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.data.domain.Page;
     import org.springframework.http.HttpStatus;
     import org.springframework.http.ResponseEntity;
     import org.springframework.web.bind.annotation.*;
@@ -81,6 +83,15 @@
             response.setMessage("Course deleted successfully");
             response.setSuccess(true);
             response.setStatus("OK");
+            return ResponseEntity.ok(response);
+        }
+
+        @GetMapping("/search")
+        public ResponseEntity<ApiResponse> searchCourse(@RequestParam(required = false) String courseCode,
+                                                          @RequestParam(required = false) String name,
+                                                          Pageable pageable) {
+            Page<Course> courses = courseService.searchCourse(courseCode, name,  pageable);
+            ApiResponse response = new ApiResponse(true, "Search courses successfully", "SUCCESS", courses);
             return ResponseEntity.ok(response);
         }
     }

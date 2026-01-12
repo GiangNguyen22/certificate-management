@@ -23,4 +23,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     @Query("SELECT c FROM Course c")
     Page<Course> getAllCourses(Pageable pageable);
 
+    @Query(value = "SELECT * FROM course c WHERE c.course_code LIKE %:courseCode% OR c.course_name LIKE %:name%", nativeQuery = true)
+    Page<Course> searchByCourseCodeOrName(String courseCode, String name, Pageable pageable);
+
 }
