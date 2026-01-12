@@ -336,9 +336,38 @@ public class UserService {
     }
 
     @Transactional
+    public void updateStaff(String username, Staff updatedStaff) {
+        Staff staff = staffRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundEx("Not found staff with username " + username));
+
+        // Update fields if provided
+        if (updatedStaff.getName() != null) {
+            staff.setName(updatedStaff.getName());
+            staff.setFullName(updatedStaff.getName()); 
+        }
+        if (updatedStaff.getPosition() != null) {
+            staff.setPosition(updatedStaff.getPosition());
+        }
+        if (updatedStaff.getMajorName() != null) {
+            staff.setMajorName(updatedStaff.getMajorName());
+        }
+        if (updatedStaff.getStaffCode() != null) {
+            staff.setStaffCode(updatedStaff.getStaffCode());
+        }
+        if (updatedStaff.getGender() != null) {
+            staff.setGender(updatedStaff.getGender());
+        }
+
+        staffRepository.save(staff);
+    }
+
+    @Transactional
     public void deleteStaffByUsername(String username) {
         Staff staff = staffRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundEx("Not found staff with username " + username));
+        if (courseRepository.existsByStaffCode(staff.getStaffCode())) {
+            throw new IllegalStateException("Staff đang đảm nhiệm khóa học, không thể xóa");
+        }
         staffRepository.delete(staff);
     }
 

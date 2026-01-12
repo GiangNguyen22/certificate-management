@@ -205,6 +205,18 @@ public class UserController {
         }
     }
 
+    @PutMapping("/staff/{username}")
+    public ResponseEntity<ApiResponse> updateStaff(@PathVariable String username, @RequestBody Staff staff) {
+        try {
+            userService.updateStaff(username, staff);
+            ApiResponse response = new ApiResponse(true, "Update staff successfully", "SUCCESS", null);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse response = new ApiResponse(false, "Update staff failed: " + e.getMessage(), "ERROR", null);
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
     @DeleteMapping("/staff/{username}")
     public ResponseEntity<ApiResponse> deleteStaff(@PathVariable String username) {
         try {
